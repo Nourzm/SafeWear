@@ -320,7 +320,7 @@ class _ContactsStepState extends State<_ContactsStep> {
                 backgroundColor: SW.surfaceContainerHigh,
                 child: Text(
                   c.name[0].toUpperCase(),
-                  style: const TextStyle(color: SW.primary),
+                  style: TextStyle(color: SW.primary),
                 ),
               ),
               title: Text(c.name),

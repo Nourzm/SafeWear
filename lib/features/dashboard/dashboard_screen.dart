@@ -86,7 +86,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   Widget build(BuildContext context) {
     final user = ref.watch(appStateProvider);
     if (user == null) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(child: CircularProgressIndicator(color: SW.primary)),
       );
     }
@@ -210,7 +210,7 @@ class _HomeTab extends StatelessWidget {
               Container(
                 width: 34,
                 height: 34,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: SW.primary,
                   shape: BoxShape.circle,
                 ),
@@ -233,14 +233,14 @@ class _HomeTab extends StatelessWidget {
               icon: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  const Icon(Icons.notifications_outlined, color: SW.onSurface),
+                  Icon(Icons.notifications_outlined, color: SW.onSurface),
                   Positioned(
                     top: -2,
                     right: -2,
                     child: Container(
                       width: 8,
                       height: 8,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: SW.tertiary,
                         shape: BoxShape.circle,
                       ),
@@ -334,7 +334,7 @@ class _GreetingCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: [Color(0xFF003D70), SW.primary, Color(0xFF1A6FAA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -606,7 +606,7 @@ class _SOSSection extends StatelessWidget {
                       height: 164,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: const RadialGradient(
+                        gradient: RadialGradient(
                           colors: [
                             Color(0xFFCC1F26),
                             SW.tertiary,
@@ -667,7 +667,7 @@ class _SOSSection extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.shield_outlined,
+                  Icon(Icons.shield_outlined,
                       size: 16, color: SW.primary),
                   const SizedBox(width: 8),
                   Text(
@@ -679,7 +679,7 @@ class _SOSSection extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  const Icon(Icons.chevron_right_rounded,
+                  Icon(Icons.chevron_right_rounded,
                       size: 16, color: SW.primary),
                 ],
               ),
@@ -1032,7 +1032,7 @@ class _DeviceCard extends StatelessWidget {
                   color: SW.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.watch_rounded,
+                child: Icon(Icons.watch_rounded,
                     color: SW.primary, size: 20),
               ),
               _BatteryBar(percent: 0.94),
@@ -1256,7 +1256,7 @@ class _SafetyScoreCard extends StatelessWidget {
                   color: SW.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.verified_user_rounded,
+                child: Icon(Icons.verified_user_rounded,
                     color: SW.primary, size: 18),
               ),
               Text(
@@ -1338,7 +1338,7 @@ class _LocationBanner extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child:
-                const Icon(Icons.place_rounded, color: SW.secondary, size: 22),
+                Icon(Icons.place_rounded, color: SW.secondary, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -1368,7 +1368,7 @@ class _LocationBanner extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.gps_fixed_rounded, color: SW.secondary, size: 20),
+          Icon(Icons.gps_fixed_rounded, color: SW.secondary, size: 20),
         ],
       ),
     );
@@ -1631,7 +1631,7 @@ class _AlertsTabState extends State<_AlertsTab> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       colors: [
                         Color(0xFF7A0E12),
                         SW.tertiary,
@@ -1957,7 +1957,7 @@ class _EmptyContactsCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Icon(Icons.people_outline, size: 48, color: SW.outline),
+          Icon(Icons.people_outline, size: 48, color: SW.outline),
           const SizedBox(height: 12),
           Text(
             'No trusted contacts yet',
@@ -2037,7 +2037,7 @@ class _PulsingSosButtonState extends State<_PulsingSosButton>
             Container(
               width: 60,
               height: 60,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   colors: [Color(0xFFCC1F26), SW.tertiary],
@@ -2209,7 +2209,7 @@ class _ContactTile extends StatelessWidget {
                 Container(
                   width: 6,
                   height: 6,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: SW.secondary,
                     shape: BoxShape.circle,
                   ),
@@ -2257,7 +2257,7 @@ class _DeviceTab extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       colors: [
                         Color(0xFF003D70),
                         SW.primary,
@@ -2524,7 +2524,7 @@ class _DeviceTab extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(
+            SizedBox(
               width: 56,
               height: 56,
               child: CircularProgressIndicator(
@@ -2905,7 +2905,7 @@ class _ProfileTab extends ConsumerWidget {
           SliverToBoxAdapter(
             child: Container(
               padding: const EdgeInsets.fromLTRB(20, 60, 20, 28),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Color(0xFF003D70), SW.primary, Color(0xFF1A6FAA)],
                   begin: Alignment.topLeft,
@@ -3098,6 +3098,49 @@ class _ProfileTab extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 _SectionLabel(label: t('app')),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: SW.surfaceContainerLowest,
+                    borderRadius: BorderRadius.circular(16),
+                    border:
+                        Border.all(color: SW.outlineVariant.withAlpha(50)),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 2),
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: SW.surfaceContainerHigh,
+                        borderRadius: BorderRadius.circular(11),
+                      ),
+                      child: Icon(
+                        SW.isDark
+                            ? Icons.dark_mode_rounded
+                            : Icons.dark_mode_outlined,
+                        color: SW.primary,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      t('darkMode'),
+                      style: GoogleFonts.manrope(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: SW.onSurface,
+                      ),
+                    ),
+                    trailing: Switch(
+                      value: ref.watch(darkModeProvider),
+                      onChanged: (v) =>
+                          ref.read(darkModeProvider.notifier).setDark(v),
+                      activeThumbColor: Colors.white,
+                      activeTrackColor: SW.secondary,
+                    ),
+                  ),
+                ),
                 _ProfileMenuItem(
                   icon: Icons.notifications_outlined,
                   label: t('notifications'),

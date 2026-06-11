@@ -272,6 +272,7 @@ const Map<String, Map<String, String>> _strings = {
     'fr': 'Notifications',
     'ar': 'الإشعارات'
   },
+  'darkMode': {'en': 'Dark Mode', 'fr': 'Mode sombre', 'ar': 'الوضع الداكن'},
   'privacySecurity': {
     'en': 'Privacy & Security',
     'fr': 'Confidentialité et sécurité',
@@ -360,6 +361,55 @@ const Map<String, Map<String, String>> _strings = {
     'ar': 'حدّدي الأماكن (المنزل، المدرسة، العمل) التي تكونين فيها بأمان.'
   },
   'getStarted': {'en': 'Get Started', 'fr': 'Commencer', 'ar': 'ابدأ الآن'},
+
+  // ── Zone editor ──
+  'newSafeZone': {
+    'en': 'New Safe Zone',
+    'fr': 'Nouvelle zone sûre',
+    'ar': 'منطقة آمنة جديدة'
+  },
+  'zoneName': {
+    'en': 'Zone name (e.g. Home, School)',
+    'fr': 'Nom de la zone (ex. Maison, École)',
+    'ar': 'اسم المنطقة (مثل المنزل، المدرسة)'
+  },
+  'circleMode': {'en': 'Circle', 'fr': 'Cercle', 'ar': 'دائرة'},
+  'drawMode': {'en': 'Draw', 'fr': 'Dessiner', 'ar': 'رسم'},
+  'circleHint': {
+    'en': 'Drag on the map to position the zone, use the slider for size.',
+    'fr': 'Faites glisser sur la carte pour placer la zone, ajustez la taille avec le curseur.',
+    'ar': 'اسحبي على الخريطة لتحديد موقع المنطقة، واستخدمي الشريط لتغيير الحجم.'
+  },
+  'drawHint': {
+    'en': 'Trace the zone outline with your finger.',
+    'fr': 'Tracez le contour de la zone avec votre doigt.',
+    'ar': 'ارسمي حدود المنطقة بإصبعك.'
+  },
+  'clearDrawing': {
+    'en': 'Clear drawing',
+    'fr': 'Effacer le dessin',
+    'ar': 'مسح الرسم'
+  },
+  'saveZone': {
+    'en': 'Save Zone',
+    'fr': 'Enregistrer la zone',
+    'ar': 'حفظ المنطقة'
+  },
+  'zoneNameRequired': {
+    'en': 'Give the zone a name first',
+    'fr': "Donnez d'abord un nom à la zone",
+    'ar': 'أدخلي اسم المنطقة أولًا'
+  },
+  'drawZoneFirst': {
+    'en': 'Draw the zone outline on the map first',
+    'fr': "Dessinez d'abord le contour de la zone",
+    'ar': 'ارسمي حدود المنطقة على الخريطة أولًا'
+  },
+  'drawnZone': {
+    'en': 'Hand-drawn zone',
+    'fr': 'Zone dessinée',
+    'ar': 'منطقة مرسومة يدويًا'
+  },
 
   // ── Emergency screen ──
   'alertIn': {'en': 'ALERT IN', 'fr': 'ALERTE DANS', 'ar': 'التنبيه خلال'},

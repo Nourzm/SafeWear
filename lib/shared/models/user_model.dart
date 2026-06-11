@@ -20,18 +20,34 @@ class SafeZone {
   final double lng;
   final double radiusMeters;
 
+  /// Normalized (0–1) position of the zone center on the map canvas.
+  final double mapX;
+  final double mapY;
+
+  /// Optional freehand outline as normalized (0–1) map points. When set, the
+  /// zone is a hand-drawn shape instead of a circle.
+  final List<List<double>> polygon;
+
   const SafeZone({
     required this.name,
     required this.lat,
     required this.lng,
     required this.radiusMeters,
+    this.mapX = 0.5,
+    this.mapY = 0.5,
+    this.polygon = const [],
   });
+
+  bool get isDrawn => polygon.isNotEmpty;
 
   Map<String, dynamic> toMap() => {
     'name': name,
     'lat': lat,
     'lng': lng,
     'radiusMeters': radiusMeters,
+    'mapX': mapX,
+    'mapY': mapY,
+    'polygon': polygon,
   };
 
   factory SafeZone.fromMap(Map<String, dynamic> map) => SafeZone(
@@ -39,6 +55,13 @@ class SafeZone {
     lat: (map['lat'] as num?)?.toDouble() ?? 0,
     lng: (map['lng'] as num?)?.toDouble() ?? 0,
     radiusMeters: (map['radiusMeters'] as num?)?.toDouble() ?? 200,
+    mapX: (map['mapX'] as num?)?.toDouble() ?? 0.5,
+    mapY: (map['mapY'] as num?)?.toDouble() ?? 0.5,
+    polygon: (map['polygon'] as List<dynamic>? ?? [])
+        .map((p) => (p as List<dynamic>)
+            .map((v) => (v as num).toDouble())
+            .toList())
+        .toList(),
   );
 }
 

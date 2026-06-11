@@ -108,7 +108,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline, color: SW.primary),
+                Icon(Icons.info_outline, color: SW.primary),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -173,7 +173,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                                 SW.surfaceContainerHigh,
                             child: Text(
                               contact.name[0].toUpperCase(),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: SW.primary,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -198,7 +198,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                                 ),
                                 child: Text(
                                   '#${index + 1}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: SW.primary,
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,

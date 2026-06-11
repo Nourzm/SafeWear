@@ -36,7 +36,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
     super.initState();
     HapticFeedback.vibrate();
     SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(statusBarColor: SW.tertiary),
+      SystemUiOverlayStyle(statusBarColor: SW.tertiary),
     );
 
     _pulseController = AnimationController(

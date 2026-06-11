@@ -119,7 +119,7 @@ class _RiskMapScreenState extends State<RiskMapScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.place_rounded,
+                          Icon(Icons.place_rounded,
                               size: 16, color: SW.tertiary),
                           const SizedBox(width: 4),
                           Text(

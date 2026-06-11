@@ -25,8 +25,13 @@ class SafeWearApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(appStateProvider);
     if (user != null) currentLang = user.language;
+    final dark = ref.watch(darkModeProvider);
+    SW.isDark = dark;
 
     return MaterialApp.router(
+      // Changing the key tears down and rebuilds the whole tree, so every
+      // widget re-reads the SW color tokens. GoRouter keeps the location.
+      key: ValueKey('app-$dark-$currentLang'),
       title: 'SafeWear',
       theme: buildSafeWearTheme(),
       routerConfig: router,

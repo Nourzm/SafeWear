@@ -193,3 +193,25 @@ class AppStateNotifier extends Notifier<UserProfile?> {
 
 final appStateProvider =
     NotifierProvider<AppStateNotifier, UserProfile?>(AppStateNotifier.new);
+
+/// Dark-mode preference, persisted across launches.
+class ThemeModeNotifier extends Notifier<bool> {
+  static const _key = 'safewear_dark_mode';
+
+  @override
+  bool build() => false;
+
+  Future<void> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    state = prefs.getBool(_key) ?? false;
+  }
+
+  Future<void> setDark(bool value) async {
+    state = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_key, value);
+  }
+}
+
+final darkModeProvider =
+    NotifierProvider<ThemeModeNotifier, bool>(ThemeModeNotifier.new);

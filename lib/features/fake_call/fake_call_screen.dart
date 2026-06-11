@@ -101,7 +101,7 @@ class _FakeCallScreenState extends State<FakeCallScreen>
                   Container(
                     width: 120,
                     height: 120,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
                         colors: [Color(0xFF2B6CB0), SW.primary],

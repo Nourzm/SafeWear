@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app/app_state.dart';
+import '../../app/i18n.dart';
 import '../../app/theme.dart';
 import '../../shared/models/user_model.dart';
+import 'zone_editor_screen.dart';
 
 class SafeZonesScreen extends ConsumerStatefulWidget {
   const SafeZonesScreen({super.key});
@@ -54,7 +56,7 @@ class _SafeZonesScreenState extends ConsumerState<SafeZonesScreen> {
             ),
             clipBehavior: Clip.antiAlias,
             child: CustomPaint(
-              painter: _ZoneMapPainter(zoneCount: zones.length),
+              painter: _ZoneMapPainter(zones: zones),
               child: const SizedBox.expand(),
             ),
           ),
@@ -68,7 +70,7 @@ class _SafeZonesScreenState extends ConsumerState<SafeZonesScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.notifications_active_rounded,
+                Icon(Icons.notifications_active_rounded,
                     color: SW.secondary, size: 20),
                 const SizedBox(width: 10),
                 Expanded(
@@ -88,7 +90,7 @@ class _SafeZonesScreenState extends ConsumerState<SafeZonesScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.location_searching_rounded,
+                        Icon(Icons.location_searching_rounded,
                             size: 56, color: SW.outline),
                         const SizedBox(height: 12),
                         Text('No safe zones yet',
@@ -137,7 +139,9 @@ class _SafeZonesScreenState extends ConsumerState<SafeZonesScreen> {
                                           fontSize: 15,
                                           fontWeight: FontWeight.w700)),
                                   Text(
-                                    '${z.radiusMeters.round()} m radius · monitoring active',
+                                    z.isDrawn
+                                        ? t('drawnZone')
+                                        : '${z.radiusMeters.round()} m',
                                     style: GoogleFonts.inter(
                                         fontSize: 12,
                                         color: SW.onSurfaceVariant),
@@ -146,7 +150,7 @@ class _SafeZonesScreenState extends ConsumerState<SafeZonesScreen> {
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline_rounded,
+                              icon: Icon(Icons.delete_outline_rounded,
                                   color: SW.tertiary),
                               onPressed: () {
                                 final updated = [...zones]..removeAt(i);
@@ -164,99 +168,22 @@ class _SafeZonesScreenState extends ConsumerState<SafeZonesScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddSheet(context, zones),
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const ZoneEditorScreen()),
+        ),
         backgroundColor: SW.primary,
         icon: const Icon(Icons.add_location_alt_rounded, color: Colors.white),
-        label: const Text('Add Zone', style: TextStyle(color: Colors.white)),
+        label: Text(t('newSafeZone'),
+            style: const TextStyle(color: Colors.white)),
       ),
     );
   }
 
-  void _showAddSheet(BuildContext context, List<SafeZone> zones) {
-    final nameCtrl = TextEditingController();
-    double radius = 200;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: SW.surfaceContainerLowest,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.fromLTRB(
-              24, 24, 24, 24 + MediaQuery.of(ctx).viewInsets.bottom),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Add Safe Zone',
-                  style: GoogleFonts.manrope(
-                      fontSize: 20, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 16),
-              TextField(
-                controller: nameCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Zone name (e.g. Home, School)',
-                  prefixIcon: Icon(Icons.place_outlined),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text('Radius: ${radius.round()} m',
-                  style: GoogleFonts.manrope(
-                      fontSize: 14, fontWeight: FontWeight.w700)),
-              Slider(
-                value: radius,
-                min: 100,
-                max: 1000,
-                divisions: 18,
-                activeColor: SW.primary,
-                onChanged: (v) => setSheetState(() => radius = v),
-              ),
-              Row(
-                children: [
-                  const Icon(Icons.my_location_rounded,
-                      size: 16, color: SW.primary),
-                  const SizedBox(width: 8),
-                  Text('Centered on your current location',
-                      style: GoogleFonts.inter(
-                          fontSize: 12, color: SW.onSurfaceVariant)),
-                ],
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (nameCtrl.text.trim().isEmpty) return;
-                    final rng = math.Random();
-                    ref.read(appStateProvider.notifier).updateSafeZones([
-                      ...zones,
-                      SafeZone(
-                        name: nameCtrl.text.trim(),
-                        // Demo coordinates around Algiers
-                        lat: 36.75 + rng.nextDouble() * 0.04,
-                        lng: 3.04 + rng.nextDouble() * 0.04,
-                        radiusMeters: radius,
-                      ),
-                    ]);
-                    Navigator.pop(ctx);
-                  },
-                  child: const Text('Save Zone'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _ZoneMapPainter extends CustomPainter {
-  final int zoneCount;
-  const _ZoneMapPainter({required this.zoneCount});
+  final List<SafeZone> zones;
+  const _ZoneMapPainter({required this.zones});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -289,25 +216,42 @@ class _ZoneMapPainter extends CustomPainter {
     canvas.drawLine(Offset(size.width * 0.4, 0),
         Offset(size.width * 0.5, size.height), roadPaint);
 
-    // Zone circles
-    final positions = [
-      Offset(size.width * 0.30, size.height * 0.40),
-      Offset(size.width * 0.70, size.height * 0.62),
-      Offset(size.width * 0.52, size.height * 0.28),
-    ];
-    for (int i = 0; i < math.min(zoneCount, positions.length); i++) {
-      final c = positions[i];
-      canvas.drawCircle(
-          c, 44, Paint()..color = SW.secondary.withValues(alpha: 0.18));
-      canvas.drawCircle(
-        c,
-        44,
-        Paint()
-          ..color = SW.secondary
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2,
-      );
-      canvas.drawCircle(c, 8, Paint()..color = SW.secondary);
+    // Saved zones at their real editor positions (circles or drawn shapes)
+    final green = SW.isDark ? const Color(0xFF34C08B) : const Color(0xFF0A6C44);
+    for (final z in zones) {
+      if (z.isDrawn && z.polygon.length > 2) {
+        final path = Path()
+          ..moveTo(z.polygon.first[0] * size.width,
+              z.polygon.first[1] * size.height);
+        for (final p in z.polygon.skip(1)) {
+          path.lineTo(p[0] * size.width, p[1] * size.height);
+        }
+        path.close();
+        canvas.drawPath(
+            path, Paint()..color = green.withValues(alpha: 0.18));
+        canvas.drawPath(
+          path,
+          Paint()
+            ..color = green
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2
+            ..strokeJoin = StrokeJoin.round,
+        );
+      } else {
+        final c = Offset(z.mapX * size.width, z.mapY * size.height);
+        final px = z.radiusMeters / 1000 * size.width * 0.45;
+        canvas.drawCircle(
+            c, px, Paint()..color = green.withValues(alpha: 0.18));
+        canvas.drawCircle(
+          c,
+          px,
+          Paint()
+            ..color = green
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2,
+        );
+        canvas.drawCircle(c, 7, Paint()..color = green);
+      }
     }
 
     // User dot
@@ -319,5 +263,5 @@ class _ZoneMapPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ZoneMapPainter old) =>
-      old.zoneCount != zoneCount;
+      old.zones.length != zones.length;
 }

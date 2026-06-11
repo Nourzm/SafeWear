@@ -59,7 +59,7 @@ class _AlertHistoryScreenState extends State<AlertHistoryScreen> {
             style: GoogleFonts.manrope(fontWeight: FontWeight.w800)),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: SW.primary))
+          ? Center(child: CircularProgressIndicator(color: SW.primary))
           : _records.isEmpty
               ? Center(
                   child: Column(
@@ -72,7 +72,7 @@ class _AlertHistoryScreenState extends State<AlertHistoryScreen> {
                           color: SW.secondaryContainer,
                           borderRadius: BorderRadius.circular(24),
                         ),
-                        child: const Icon(Icons.verified_user_rounded,
+                        child: Icon(Icons.verified_user_rounded,
                             color: SW.secondary, size: 44),
                       ),
                       const SizedBox(height: 18),

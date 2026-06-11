@@ -35,6 +35,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _boot() async {
+    await ref.read(darkModeProvider.notifier).load();
     await ref.read(appStateProvider.notifier).load();
     await Future.delayed(const Duration(milliseconds: 1600));
     if (!mounted) return;
@@ -52,7 +53,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFF003D70), SW.primary, Color(0xFF1A6FAA)],
             begin: Alignment.topLeft,
@@ -79,7 +80,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.shield_rounded,
+                  child: Icon(Icons.shield_rounded,
                       color: SW.primary, size: 56),
                 ),
               ),
