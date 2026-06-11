@@ -411,6 +411,44 @@ const Map<String, Map<String, String>> _strings = {
     'ar': 'منطقة مرسومة يدويًا'
   },
 
+  // ── Watch demo ──
+  'watchDemo': {
+    'en': 'Watch Demo',
+    'fr': 'Démo de la montre',
+    'ar': 'عرض الساعة'
+  },
+  'watchDemoHint': {
+    'en': 'Simulate sensor events to see how the watch detects danger and hands off to the phone.',
+    'fr': 'Simulez des événements capteurs pour voir comment la montre détecte le danger et alerte le téléphone.',
+    'ar': 'حاكي أحداث المستشعرات لترى كيف تكتشف الساعة الخطر وتسلّم الإنذار إلى الهاتف.'
+  },
+  'simulateFall': {
+    'en': 'Simulate Fall',
+    'fr': 'Simuler une chute',
+    'ar': 'محاكاة سقوط'
+  },
+  'spikeHr': {
+    'en': 'Spike Heart Rate',
+    'fr': 'Accélérer le pouls',
+    'ar': 'رفع نبض القلب'
+  },
+  'calmHr': {
+    'en': 'Calm Heart Rate',
+    'fr': 'Calmer le pouls',
+    'ar': 'تهدئة النبض'
+  },
+  'fallDetected': {
+    'en': 'Fall detected\nAre you OK?',
+    'fr': 'Chute détectée\nÇa va ?',
+    'ar': 'تم رصد سقوط\nهل أنتِ بخير؟'
+  },
+  'imOk': {'en': "I'M OK", 'fr': 'ÇA VA', 'ar': 'أنا بخير'},
+  'phoneTakingOver': {
+    'en': 'Phone is dispatching the alert…',
+    'fr': "Le téléphone envoie l'alerte…",
+    'ar': 'الهاتف يرسل التنبيه الآن…'
+  },
+
   // ── Emergency screen ──
   'alertIn': {'en': 'ALERT IN', 'fr': 'ALERTE DANS', 'ar': 'التنبيه خلال'},
   'imSafeCancel': {

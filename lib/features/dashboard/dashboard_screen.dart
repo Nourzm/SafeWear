@@ -15,6 +15,7 @@ import '../history/alert_history_screen.dart';
 import '../medical/medical_profile_screen.dart';
 import '../risk_map/risk_map_screen.dart';
 import '../safe_zones/safe_zones_screen.dart';
+import '../watch_demo/watch_demo_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -2343,7 +2344,12 @@ class _DeviceTab extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      Container(
+                      GestureDetector(
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const WatchDemoScreen()),
+                        ),
+                        child: Container(
                         width: 72,
                         height: 96,
                         decoration: BoxDecoration(
@@ -2367,8 +2373,67 @@ class _DeviceTab extends StatelessWidget {
                             ),
                           ],
                         ),
+                        ),
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Watch demo banner
+                GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const WatchDemoScreen()),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF14181F), Color(0xFF2C374A)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(25),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(Icons.play_circle_fill_rounded,
+                              color: Colors.white, size: 26),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                t('watchDemo'),
+                                style: GoogleFonts.manrope(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                t('watchDemoHint'),
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: Colors.white60,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right_rounded,
+                            color: Colors.white54),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
