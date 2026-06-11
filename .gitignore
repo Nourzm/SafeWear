@@ -44,10 +44,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# ─── Firebase secrets (never commit) ──────────────────────
-android/app/google-services.json
-ios/Runner/GoogleService-Info.plist
-lib/firebase_options.dart
+# Firebase client config files are committed: they contain public client
+# identifiers (shipped in every app binary), not secrets. Access control
+# lives in Firestore security rules.
 
 # ─── Android signing ──────────────────────────────────────
 android/key.properties

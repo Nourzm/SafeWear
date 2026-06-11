@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1060743667195",
+    "project_id": "safewear-124e6",
+    "storage_bucket": "safewear-124e6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1060743667195:android:d654b7982b3ccd46627f5e",
+        "android_client_info": {
+          "package_name": "com.safewear"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-nBps86qwmM42nEucBy6rNdkBeTSviAU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
