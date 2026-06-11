@@ -19,6 +19,9 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          # Pinned to the version used for local development so analyze and
+          # build behave identically.
+          flutter-version: "3.38.9"
           cache: true
 
       - name: Install dependencies
