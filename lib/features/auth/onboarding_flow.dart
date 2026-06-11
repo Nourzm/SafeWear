@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../app/app_state.dart';
 import '../../app/theme.dart';
 import '../../shared/models/user_model.dart';
-import '../dashboard/dashboard_screen.dart';
 
 // Multi-step onboarding: language → phone OTP → profile → contacts → emergency mode → safe zones
 class OnboardingFlow extends ConsumerStatefulWidget {
@@ -37,10 +38,12 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     }
   }
 
-  void _finish() {
+  Future<void> _finish() async {
     final user = UserProfile(
-      uid: 'demo_uid',
-      name: _nameController.text.trim(),
+      uid: 'user_${DateTime.now().millisecondsSinceEpoch}',
+      name: _nameController.text.trim().isEmpty
+          ? 'SafeWear User'
+          : _nameController.text.trim(),
       phone: _phoneController.text.trim(),
       language: _language,
       trustedContacts: _contacts,
@@ -48,9 +51,8 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
       silentTriggerMode: _emergencyMode,
       tier: SubscriptionTier.free,
     );
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => DashboardScreen(user: user)),
-    );
+    await ref.read(appStateProvider.notifier).saveProfile(user);
+    if (mounted) context.go('/dashboard');
   }
 
   @override

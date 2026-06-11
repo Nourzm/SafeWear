@@ -7,7 +7,12 @@ import 'app/router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Cloud sync is optional — the app is fully functional offline.
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 5));
+  } catch (_) {}
   runApp(const ProviderScope(child: SafeWearApp()));
 }
 

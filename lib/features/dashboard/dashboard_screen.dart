@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../app/app_state.dart';
 import '../../app/theme.dart';
 import '../../services/alert_service.dart';
 import '../../shared/models/user_model.dart';
+import '../../shared/widgets/mode_selector_sheet.dart';
+import '../contacts/contacts_screen.dart';
 import '../emergency/emergency_screen.dart';
+import '../fake_call/fake_call_screen.dart';
+import '../history/alert_history_screen.dart';
+import '../medical/medical_profile_screen.dart';
+import '../risk_map/risk_map_screen.dart';
+import '../safe_zones/safe_zones_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
-  final UserProfile user;
-  const DashboardScreen({super.key, required this.user});
+  const DashboardScreen({super.key});
 
   @override
   ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
@@ -36,12 +44,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   }
 
   Future<void> _triggerSOS() async {
-    if (_isTriggeringAlert) return;
+    final user = ref.read(appStateProvider);
+    if (user == null || _isTriggeringAlert) return;
     setState(() => _isTriggeringAlert = true);
 
     final alertId = await AlertService().startCountdown(
-      widget.user,
-      widget.user.silentTriggerMode,
+      user,
+      user.silentTriggerMode,
     );
 
     if (!mounted) return;
@@ -51,37 +60,68 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       MaterialPageRoute(
         builder: (_) => EmergencyScreen(
           alertId: alertId,
-          mode: widget.user.silentTriggerMode,
-          user: widget.user,
+          mode: user.silentTriggerMode,
+          user: user,
         ),
       ),
     );
   }
 
-  String get _greeting {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+  void _push(Widget screen) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+  }
+
+  void _openContacts() {
+    final user = ref.read(appStateProvider);
+    if (user == null) return;
+    _push(ContactsScreen(
+      contacts: user.trustedContacts,
+      onChanged: (c) =>
+          ref.read(appStateProvider.notifier).updateContacts(c),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(appStateProvider);
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: SW.primary)),
+      );
+    }
+
     return Scaffold(
       backgroundColor: SW.background,
       body: IndexedStack(
         index: _navIndex,
         children: [
           _HomeTab(
-            user: widget.user,
+            user: user,
             pulseController: _pulseController,
             onSOS: _triggerSOS,
             isTriggeringAlert: _isTriggeringAlert,
-            greeting: _greeting,
+            onOpenContacts: _openContacts,
+            onOpenRiskMap: () => _push(const RiskMapScreen()),
+            onOpenSafeZones: () => _push(const SafeZonesScreen()),
+            onOpenMedical: () => _push(const MedicalProfileScreen()),
+            onOpenHistory: () => _push(const AlertHistoryScreen()),
+            onOpenFakeCall: () => _push(const FakeCallScreen()),
+            onOpenModeSelector: () => showModeSelectorSheet(context, ref),
           ),
-          _AlertsTab(user: widget.user),
-          _DeviceTab(),
-          _ProfileTab(user: widget.user),
+          _AlertsTab(
+            user: user,
+            onSOS: _triggerSOS,
+            onManageContacts: _openContacts,
+            onOpenHistory: () => _push(const AlertHistoryScreen()),
+          ),
+          const _DeviceTab(),
+          _ProfileTab(
+            user: user,
+            onOpenContacts: _openContacts,
+            onOpenSafeZones: () => _push(const SafeZonesScreen()),
+            onOpenMedical: () => _push(const MedicalProfileScreen()),
+            onOpenModeSelector: () => showModeSelectorSheet(context, ref),
+          ),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -125,15 +165,34 @@ class _HomeTab extends StatelessWidget {
   final AnimationController pulseController;
   final VoidCallback onSOS;
   final bool isTriggeringAlert;
-  final String greeting;
+  final VoidCallback onOpenContacts;
+  final VoidCallback onOpenRiskMap;
+  final VoidCallback onOpenSafeZones;
+  final VoidCallback onOpenMedical;
+  final VoidCallback onOpenHistory;
+  final VoidCallback onOpenFakeCall;
+  final VoidCallback onOpenModeSelector;
 
   const _HomeTab({
     required this.user,
     required this.pulseController,
     required this.onSOS,
     required this.isTriggeringAlert,
-    required this.greeting,
+    required this.onOpenContacts,
+    required this.onOpenRiskMap,
+    required this.onOpenSafeZones,
+    required this.onOpenMedical,
+    required this.onOpenHistory,
+    required this.onOpenFakeCall,
+    required this.onOpenModeSelector,
   });
+
+  String get _greeting {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -187,7 +246,7 @@ class _HomeTab extends StatelessWidget {
                   ),
                 ],
               ),
-              onPressed: () {},
+              onPressed: onOpenHistory,
             ),
             Padding(
               padding: const EdgeInsets.only(right: 12),
@@ -210,20 +269,23 @@ class _HomeTab extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              // ── Greeting Hero Card ──
-              _GreetingCard(user: user, greeting: greeting),
+              _GreetingCard(user: user, greeting: _greeting),
               const SizedBox(height: 20),
-              // ── SOS Section ──
               _SOSSection(
                 pulseController: pulseController,
                 onSOS: onSOS,
                 isLoading: isTriggeringAlert,
+                mode: user.silentTriggerMode,
+                onModeTap: onOpenModeSelector,
               ),
               const SizedBox(height: 20),
-              // ── Quick Actions ──
-              _QuickActionsRow(),
+              _QuickActionsRow(
+                onContacts: onOpenContacts,
+                onRiskMap: onOpenRiskMap,
+                onSafeZones: onOpenSafeZones,
+                onMedical: onOpenMedical,
+              ),
               const SizedBox(height: 20),
-              // ── Bento Grid Row 1: HR + Device ──
               Row(
                 children: [
                   Expanded(child: _HeartRateCard()),
@@ -232,20 +294,25 @@ class _HomeTab extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              // ── Bento Grid Row 2: Contacts + Safety Score ──
               Row(
                 children: [
-                  Expanded(child: _ContactsStatusCard()),
+                  Expanded(
+                      child: _ContactsStatusCard(
+                          count: user.trustedContacts.length,
+                          onTap: onOpenContacts)),
                   const SizedBox(width: 12),
                   Expanded(child: _SafetyScoreCard()),
                 ],
               ),
               const SizedBox(height: 20),
-              // ── Location Status Banner ──
-              _LocationBanner(),
+              _FakeCallBanner(onTap: onOpenFakeCall),
               const SizedBox(height: 20),
-              // ── Recent Activity ──
-              _RecentActivity(),
+              _LocationBanner(
+                zoneName:
+                    user.safeZones.isNotEmpty ? user.safeZones.first.name : null,
+              ),
+              const SizedBox(height: 20),
+              _RecentActivity(onViewAll: onOpenHistory),
             ]),
           ),
         ),
@@ -310,7 +377,8 @@ class _GreetingCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(25),
                   borderRadius: BorderRadius.circular(100),
@@ -437,12 +505,27 @@ class _SOSSection extends StatelessWidget {
   final AnimationController pulseController;
   final VoidCallback onSOS;
   final bool isLoading;
+  final EmergencyMode mode;
+  final VoidCallback onModeTap;
 
   const _SOSSection({
     required this.pulseController,
     required this.onSOS,
     required this.isLoading,
+    required this.mode,
+    required this.onModeTap,
   });
+
+  String get _modeLabel {
+    switch (mode) {
+      case EmergencyMode.contacts:
+        return 'Mode: Notify Contacts';
+      case EmergencyMode.police:
+        return 'Mode: Contacts + Police';
+      case EmergencyMode.saveMe:
+        return 'Mode: Maximum Response';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -450,7 +533,6 @@ class _SOSSection extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
         children: [
-          // Instructional label
           Text(
             'EMERGENCY SOS',
             style: GoogleFonts.inter(
@@ -462,7 +544,7 @@ class _SOSSection extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Hold button for 2 seconds to activate',
+            'Tap to start the 20-second countdown',
             style: GoogleFonts.inter(
               fontSize: 12,
               color: SW.onSurfaceVariant,
@@ -475,7 +557,6 @@ class _SOSSection extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Outer pulse ring 1
                   AnimatedBuilder(
                     animation: pulseController,
                     builder: (context, _) {
@@ -485,13 +566,11 @@ class _SOSSection extends StatelessWidget {
                         height: 220 + v * 30,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: SW.tertiary
-                              .withAlpha((18 * (1 - v)).round()),
+                          color: SW.tertiary.withAlpha((18 * (1 - v)).round()),
                         ),
                       );
                     },
                   ),
-                  // Outer pulse ring 2 (offset)
                   AnimatedBuilder(
                     animation: pulseController,
                     builder: (context, _) {
@@ -501,13 +580,11 @@ class _SOSSection extends StatelessWidget {
                         height: 200 + v * 30,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: SW.tertiary
-                              .withAlpha((25 * (1 - v)).round()),
+                          color: SW.tertiary.withAlpha((25 * (1 - v)).round()),
                         ),
                       );
                     },
                   ),
-                  // Static halo
                   Container(
                     width: 196,
                     height: 196,
@@ -520,7 +597,6 @@ class _SOSSection extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Main SOS button
                   GestureDetector(
                     onTap: isLoading ? null : onSOS,
                     child: Container(
@@ -529,7 +605,11 @@ class _SOSSection extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: const RadialGradient(
-                          colors: [Color(0xFFCC1F26), SW.tertiary, Color(0xFF7A0E12)],
+                          colors: [
+                            Color(0xFFCC1F26),
+                            SW.tertiary,
+                            Color(0xFF7A0E12)
+                          ],
                           stops: [0.0, 0.6, 1.0],
                         ),
                         boxShadow: [
@@ -572,31 +652,35 @@ class _SOSSection extends StatelessWidget {
               ),
             ),
           ),
-          // Mode label
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: SW.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(100),
-              border: Border.all(color: SW.outlineVariant),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.shield_outlined, size: 16, color: SW.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'Mode: Notify Contacts',
-                  style: GoogleFonts.manrope(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: SW.primary,
+          GestureDetector(
+            onTap: onModeTap,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: SW.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(color: SW.outlineVariant),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.shield_outlined,
+                      size: 16, color: SW.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    _modeLabel,
+                    style: GoogleFonts.manrope(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: SW.primary,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 6),
-                const Icon(Icons.chevron_right_rounded,
-                    size: 16, color: SW.primary),
-              ],
+                  const SizedBox(width: 6),
+                  const Icon(Icons.chevron_right_rounded,
+                      size: 16, color: SW.primary),
+                ],
+              ),
             ),
           ),
         ],
@@ -606,6 +690,18 @@ class _SOSSection extends StatelessWidget {
 }
 
 class _QuickActionsRow extends StatelessWidget {
+  final VoidCallback onContacts;
+  final VoidCallback onRiskMap;
+  final VoidCallback onSafeZones;
+  final VoidCallback onMedical;
+
+  const _QuickActionsRow({
+    required this.onContacts,
+    required this.onRiskMap,
+    required this.onSafeZones,
+    required this.onMedical,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -627,7 +723,7 @@ class _QuickActionsRow extends StatelessWidget {
               label: 'Contacts',
               color: SW.primary,
               bg: SW.surfaceContainerHigh,
-              onTap: () {},
+              onTap: onContacts,
             ),
             const SizedBox(width: 10),
             _QuickAction(
@@ -635,7 +731,7 @@ class _QuickActionsRow extends StatelessWidget {
               label: 'Risk Map',
               color: const Color(0xFF7C3AED),
               bg: const Color(0xFFF3EEFF),
-              onTap: () {},
+              onTap: onRiskMap,
             ),
             const SizedBox(width: 10),
             _QuickAction(
@@ -643,7 +739,7 @@ class _QuickActionsRow extends StatelessWidget {
               label: 'Safe Zones',
               color: SW.secondary,
               bg: SW.secondaryContainer,
-              onTap: () {},
+              onTap: onSafeZones,
             ),
             const SizedBox(width: 10),
             _QuickAction(
@@ -651,7 +747,7 @@ class _QuickActionsRow extends StatelessWidget {
               label: 'Medical',
               color: SW.tertiary,
               bg: const Color(0xFFFFE4E6),
-              onTap: () {},
+              onTap: onMedical,
             ),
           ],
         ),
@@ -706,10 +802,92 @@ class _QuickAction extends StatelessWidget {
   }
 }
 
+class _FakeCallBanner extends StatelessWidget {
+  final VoidCallback onTap;
+  const _FakeCallBanner({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF4C1D95), Color(0xFF7C3AED)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF7C3AED).withAlpha(70),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(30),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(Icons.phone_in_talk_rounded,
+                  color: Colors.white, size: 24),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Fake Call',
+                    style: GoogleFonts.manrope(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    'Get a realistic incoming call — a discreet way out.',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(100),
+              ),
+              child: Text(
+                'Ring Now',
+                style: GoogleFonts.manrope(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF7C3AED),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _HeartRateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Simulated HR data points
     final points = [0.55, 0.4, 0.7, 0.5, 0.8, 0.6, 0.75, 0.5, 0.65];
     return Container(
       height: 168,
@@ -781,7 +959,6 @@ class _HeartRateCard extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          // Mini sparkline
           SizedBox(
             height: 30,
             child: CustomPaint(
@@ -853,8 +1030,8 @@ class _DeviceCard extends StatelessWidget {
                   color: SW.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child:
-                    const Icon(Icons.watch_rounded, color: SW.primary, size: 20),
+                child: const Icon(Icons.watch_rounded,
+                    color: SW.primary, size: 20),
               ),
               _BatteryBar(percent: 0.94),
             ],
@@ -960,7 +1137,6 @@ class _BatteryPainter extends CustomPainter {
       fillPaint,
     );
 
-    // nub
     final nubPaint = Paint()
       ..color = SW.outlineVariant
       ..style = PaintingStyle.fill;
@@ -978,70 +1154,77 @@ class _BatteryPainter extends CustomPainter {
 }
 
 class _ContactsStatusCard extends StatelessWidget {
+  final int count;
+  final VoidCallback onTap;
+  const _ContactsStatusCard({required this.count, required this.onTap});
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 130,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [SW.secondary.withAlpha(220), SW.secondary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 130,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [SW.secondary.withAlpha(220), SW.secondary],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: SW.secondary.withAlpha(60),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: SW.secondary.withAlpha(60),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(30),
-                  borderRadius: BorderRadius.circular(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(30),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.people_alt_rounded,
+                      color: Colors.white, size: 18),
                 ),
-                child: const Icon(Icons.people_alt_rounded,
-                    color: Colors.white, size: 18),
-              ),
-              Text(
-                'ACTIVE',
-                style: GoogleFonts.inter(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 2,
-                  color: Colors.white60,
+                Text(
+                  'ACTIVE',
+                  style: GoogleFonts.inter(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 2,
+                    color: Colors.white60,
+                  ),
                 ),
+              ],
+            ),
+            const Spacer(),
+            Text(
+              '$count',
+              style: GoogleFonts.manrope(
+                fontSize: 36,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                height: 1,
               ),
-            ],
-          ),
-          const Spacer(),
-          Text(
-            '3',
-            style: GoogleFonts.manrope(
-              fontSize: 36,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              height: 1,
             ),
-          ),
-          Text(
-            'Contacts on alert',
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: Colors.white70,
+            Text(
+              'Contacts on alert',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: Colors.white70,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1124,8 +1307,12 @@ class _SafetyScoreCard extends StatelessWidget {
 }
 
 class _LocationBanner extends StatelessWidget {
+  final String? zoneName;
+  const _LocationBanner({this.zoneName});
+
   @override
   Widget build(BuildContext context) {
+    final inZone = zoneName != null;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
@@ -1148,7 +1335,8 @@ class _LocationBanner extends StatelessWidget {
               color: SW.secondaryContainer,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.place_rounded, color: SW.secondary, size: 22),
+            child:
+                const Icon(Icons.place_rounded, color: SW.secondary, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -1166,7 +1354,9 @@ class _LocationBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Hydra, Algiers — Safe Zone ✓',
+                  inZone
+                      ? 'Hydra, Algiers — $zoneName zone ✓'
+                      : 'Hydra, Algiers — GPS active',
                   style: GoogleFonts.manrope(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -1184,6 +1374,9 @@ class _LocationBanner extends StatelessWidget {
 }
 
 class _RecentActivity extends StatelessWidget {
+  final VoidCallback onViewAll;
+  const _RecentActivity({required this.onViewAll});
+
   @override
   Widget build(BuildContext context) {
     final activities = [
@@ -1249,7 +1442,7 @@ class _RecentActivity extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: onViewAll,
               child: Text(
                 'View All',
                 style: GoogleFonts.inter(
@@ -1362,12 +1555,60 @@ class _ActivityTile extends StatelessWidget {
 // ─────────────────────────────────────────────────────────
 // ALERTS TAB
 // ─────────────────────────────────────────────────────────
-class _AlertsTab extends StatelessWidget {
+class _AlertsTab extends StatefulWidget {
   final UserProfile user;
-  const _AlertsTab({required this.user});
+  final VoidCallback onSOS;
+  final VoidCallback onManageContacts;
+  final VoidCallback onOpenHistory;
+  const _AlertsTab({
+    required this.user,
+    required this.onSOS,
+    required this.onManageContacts,
+    required this.onOpenHistory,
+  });
+
+  @override
+  State<_AlertsTab> createState() => _AlertsTabState();
+}
+
+class _AlertsTabState extends State<_AlertsTab> {
+  Map<String, bool> _toggles = {};
+  List<LocalAlertRecord> _history = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final toggles = await AppStateNotifier.loadToggles();
+    final history = await AppStateNotifier.loadHistory();
+    if (!mounted) return;
+    setState(() {
+      _toggles = toggles;
+      _history = history.take(3).toList();
+    });
+  }
+
+  void _setToggle(String key, bool value) {
+    setState(() => _toggles[key] = value);
+    AppStateNotifier.saveToggle(key, value);
+  }
+
+  String _formatDate(DateTime d) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    final h = d.hour % 12 == 0 ? 12 : d.hour % 12;
+    final ampm = d.hour >= 12 ? 'PM' : 'AM';
+    return '${months[d.month - 1]} ${d.day} · $h:${d.minute.toString().padLeft(2, '0')} $ampm';
+  }
 
   @override
   Widget build(BuildContext context) {
+    final user = widget.user;
     return Scaffold(
       backgroundColor: SW.background,
       body: CustomScrollView(
@@ -1384,13 +1625,16 @@ class _AlertsTab extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Emergency Hub hero
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF7A0E12), SW.tertiary, Color(0xFFB91C1C)],
+                      colors: [
+                        Color(0xFF7A0E12),
+                        SW.tertiary,
+                        Color(0xFFB91C1C)
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -1431,7 +1675,8 @@ class _AlertsTab extends StatelessWidget {
                               children: [
                                 _AlertStatChip(
                                     icon: Icons.people_rounded,
-                                    label: '3 contacts'),
+                                    label:
+                                        '${user.trustedContacts.length} contacts'),
                                 const SizedBox(width: 8),
                                 _AlertStatChip(
                                     icon: Icons.gps_fixed_rounded,
@@ -1442,13 +1687,11 @@ class _AlertsTab extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      _PulsingSosButton(onTap: () {}),
+                      _PulsingSosButton(onTap: widget.onSOS),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // Smart alerts toggles
                 Text(
                   'Smart Alerts',
                   style: GoogleFonts.manrope(
@@ -1464,7 +1707,8 @@ class _AlertsTab extends StatelessWidget {
                   iconBg: const Color(0xFFFEF3C7),
                   title: 'Unusual Activity',
                   subtitle: 'Alert when vitals spike unexpectedly',
-                  value: true,
+                  value: _toggles['unusualActivity'] ?? true,
+                  onChanged: (v) => _setToggle('unusualActivity', v),
                 ),
                 _AlertToggleTile(
                   icon: Icons.location_off_rounded,
@@ -1472,7 +1716,8 @@ class _AlertsTab extends StatelessWidget {
                   iconBg: SW.surfaceContainerHigh,
                   title: 'Geofence Exit',
                   subtitle: 'Alert when leaving safe zones',
-                  value: true,
+                  value: _toggles['geofenceExit'] ?? true,
+                  onChanged: (v) => _setToggle('geofenceExit', v),
                 ),
                 _AlertToggleTile(
                   icon: Icons.watch_off_rounded,
@@ -1480,7 +1725,8 @@ class _AlertsTab extends StatelessWidget {
                   iconBg: SW.surfaceContainerHigh,
                   title: 'Device Disconnected',
                   subtitle: 'Alert when watch loses connection',
-                  value: false,
+                  value: _toggles['deviceDisconnected'] ?? false,
+                  onChanged: (v) => _setToggle('deviceDisconnected', v),
                 ),
                 _AlertToggleTile(
                   icon: Icons.mic_off_rounded,
@@ -1488,11 +1734,10 @@ class _AlertsTab extends StatelessWidget {
                   iconBg: const Color(0xFFF3EEFF),
                   title: 'Voice Trigger',
                   subtitle: '"SafeWear contacts" activates silent alert',
-                  value: true,
+                  value: _toggles['voiceTrigger'] ?? true,
+                  onChanged: (v) => _setToggle('voiceTrigger', v),
                 ),
                 const SizedBox(height: 24),
-
-                // Alert history
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1504,46 +1749,48 @@ class _AlertsTab extends StatelessWidget {
                         color: SW.onSurface,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: SW.surfaceContainerHigh,
-                        borderRadius: BorderRadius.circular(100),
-                      ),
+                    TextButton(
+                      onPressed: widget.onOpenHistory,
                       child: Text(
-                        '3 this month',
+                        'View All',
                         style: GoogleFonts.inter(
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: SW.onSurfaceVariant,
+                          color: SW.primary,
                         ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                _AlertHistoryTile(
-                  status: 'Cancelled',
-                  description: 'Manual SOS — cancelled by user',
-                  date: 'May 10, 2026 · 10:14 PM',
-                  statusColor: SW.secondary,
-                ),
-                _AlertHistoryTile(
-                  status: 'Resolved',
-                  description: 'Unusual HR · 112 bpm detected',
-                  date: 'May 8, 2026 · 2:33 AM',
-                  statusColor: const Color(0xFFD97706),
-                ),
-                _AlertHistoryTile(
-                  status: 'Resolved',
-                  description: 'Geofence exit · School zone',
-                  date: 'Apr 29, 2026 · 4:12 PM',
-                  statusColor: SW.primary,
-                ),
+                if (_history.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: SW.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'No alerts yet — trigger the SOS to see the flow.',
+                        style:
+                            GoogleFonts.inter(color: SW.onSurfaceVariant),
+                      ),
+                    ),
+                  )
+                else
+                  ..._history.map((r) {
+                    final resolved = r.status == 'resolved';
+                    return _AlertHistoryTile(
+                      status: resolved ? 'Resolved' : 'Cancelled',
+                      description: resolved
+                          ? 'Alert dispatched to contacts'
+                          : 'Manual SOS — cancelled by user',
+                      date: _formatDate(r.startedAt),
+                      statusColor: resolved ? SW.tertiary : SW.secondary,
+                    );
+                  }),
                 const SizedBox(height: 24),
-
-                // Trusted contacts
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1556,7 +1803,7 @@ class _AlertsTab extends StatelessWidget {
                       ),
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: widget.onManageContacts,
                       child: Text(
                         'Manage',
                         style: GoogleFonts.inter(
@@ -1570,7 +1817,7 @@ class _AlertsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 if (user.trustedContacts.isEmpty)
-                  _EmptyContactsCard()
+                  _EmptyContactsCard(onAdd: widget.onManageContacts)
                 else
                   ...user.trustedContacts.map((c) => _ContactTile(contact: c)),
               ]),
@@ -1672,8 +1919,7 @@ class _AlertHistoryTile extends StatelessWidget {
             ),
           ),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: statusColor.withAlpha(18),
               borderRadius: BorderRadius.circular(100),
@@ -1694,6 +1940,9 @@ class _AlertHistoryTile extends StatelessWidget {
 }
 
 class _EmptyContactsCard extends StatelessWidget {
+  final VoidCallback onAdd;
+  const _EmptyContactsCard({required this.onAdd});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1701,8 +1950,7 @@ class _EmptyContactsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: SW.surfaceContainerLow,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: SW.outlineVariant.withAlpha(80), style: BorderStyle.solid),
+        border: Border.all(color: SW.outlineVariant.withAlpha(80)),
       ),
       child: Column(
         children: [
@@ -1726,7 +1974,7 @@ class _EmptyContactsCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: onAdd,
             icon: const Icon(Icons.person_add_rounded, size: 18),
             label: const Text('Add Contact'),
           ),
@@ -1751,9 +1999,9 @@ class _PulsingSosButtonState extends State<_PulsingSosButton>
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(
-        vsync: this, duration: const Duration(seconds: 2))
-      ..repeat();
+    _ctrl =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+          ..repeat();
   }
 
   @override
@@ -1797,8 +2045,7 @@ class _PulsingSosButtonState extends State<_PulsingSosButton>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.sos_rounded,
-                      color: Colors.white, size: 22),
+                  const Icon(Icons.sos_rounded, color: Colors.white, size: 22),
                   Text(
                     'SOS',
                     style: GoogleFonts.manrope(
@@ -1817,13 +2064,14 @@ class _PulsingSosButtonState extends State<_PulsingSosButton>
   }
 }
 
-class _AlertToggleTile extends StatefulWidget {
+class _AlertToggleTile extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final Color iconBg;
   final String title;
   final String subtitle;
   final bool value;
+  final ValueChanged<bool> onChanged;
   const _AlertToggleTile({
     required this.icon,
     required this.iconColor,
@@ -1831,20 +2079,8 @@ class _AlertToggleTile extends StatefulWidget {
     required this.title,
     required this.subtitle,
     required this.value,
+    required this.onChanged,
   });
-
-  @override
-  State<_AlertToggleTile> createState() => _AlertToggleTileState();
-}
-
-class _AlertToggleTileState extends State<_AlertToggleTile> {
-  late bool _val;
-
-  @override
-  void initState() {
-    super.initState();
-    _val = widget.value;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1862,10 +2098,10 @@ class _AlertToggleTileState extends State<_AlertToggleTile> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: widget.iconBg,
+              color: iconBg,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(widget.icon, color: widget.iconColor, size: 22),
+            child: Icon(icon, color: iconColor, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -1873,7 +2109,7 @@ class _AlertToggleTileState extends State<_AlertToggleTile> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.title,
+                  title,
                   style: GoogleFonts.manrope(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -1881,7 +2117,7 @@ class _AlertToggleTileState extends State<_AlertToggleTile> {
                   ),
                 ),
                 Text(
-                  widget.subtitle,
+                  subtitle,
                   style: GoogleFonts.inter(
                       fontSize: 12, color: SW.onSurfaceVariant),
                 ),
@@ -1889,8 +2125,8 @@ class _AlertToggleTileState extends State<_AlertToggleTile> {
             ),
           ),
           Switch(
-            value: _val,
-            onChanged: (v) => setState(() => _val = v),
+            value: value,
+            onChanged: onChanged,
             activeThumbColor: Colors.white,
             activeTrackColor: SW.secondary,
           ),
@@ -1997,6 +2233,8 @@ class _ContactTile extends StatelessWidget {
 // DEVICE TAB
 // ─────────────────────────────────────────────────────────
 class _DeviceTab extends StatelessWidget {
+  const _DeviceTab();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2015,12 +2253,15 @@ class _DeviceTab extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Device Hero Card
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF003D70), SW.primary, Color(0xFF1A6FAA)],
+                      colors: [
+                        Color(0xFF003D70),
+                        SW.primary,
+                        Color(0xFF1A6FAA)
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -2046,7 +2287,8 @@ class _DeviceTab extends StatelessWidget {
                                 color: const Color(0xFF4ADE80).withAlpha(40),
                                 borderRadius: BorderRadius.circular(100),
                                 border: Border.all(
-                                    color: const Color(0xFF4ADE80).withAlpha(80)),
+                                    color:
+                                        const Color(0xFF4ADE80).withAlpha(80)),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -2093,15 +2335,13 @@ class _DeviceTab extends StatelessWidget {
                                     value: 'BLE'),
                                 const SizedBox(width: 10),
                                 _DeviceStatBadge(
-                                    icon: Icons.wifi_rounded,
-                                    value: 'Synced'),
+                                    icon: Icons.wifi_rounded, value: 'Synced'),
                               ],
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 16),
-                      // Watch illustration placeholder
                       Container(
                         width: 72,
                         height: 96,
@@ -2131,8 +2371,6 @@ class _DeviceTab extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // Live sensor readings
                 Text(
                   'Live Sensor Data',
                   style: GoogleFonts.manrope(
@@ -2206,8 +2444,6 @@ class _DeviceTab extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 24),
-
-                // Device actions
                 Text(
                   'Device Actions',
                   style: GoogleFonts.manrope(
@@ -2221,7 +2457,7 @@ class _DeviceTab extends StatelessWidget {
                   icon: Icons.bluetooth_searching_rounded,
                   title: 'Scan for Devices',
                   subtitle: 'Find SafeWear devices nearby',
-                  onTap: () {},
+                  onTap: () => _showScanningSheet(context),
                 ),
                 _DeviceActionTile(
                   icon: Icons.system_update_rounded,
@@ -2229,7 +2465,8 @@ class _DeviceTab extends StatelessWidget {
                   subtitle: 'v2.1.0 — Up to date',
                   onTap: () {},
                   trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: SW.secondary.withAlpha(20),
                       borderRadius: BorderRadius.circular(100),
@@ -2248,7 +2485,16 @@ class _DeviceTab extends StatelessWidget {
                   icon: Icons.vibration_rounded,
                   title: 'Test Haptics',
                   subtitle: 'Verify alert vibration patterns',
-                  onTap: () {},
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: SW.primary,
+                        behavior: SnackBarBehavior.floating,
+                        content: Text('Haptic test pattern sent to watch',
+                            style: GoogleFonts.inter(color: Colors.white)),
+                      ),
+                    );
+                  },
                 ),
                 _DeviceActionTile(
                   icon: Icons.link_off_rounded,
@@ -2261,6 +2507,42 @@ class _DeviceTab extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showScanningSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: SW.surfaceContainerLowest,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 56,
+              height: 56,
+              child: CircularProgressIndicator(
+                  color: SW.primary, strokeWidth: 3),
+            ),
+            const SizedBox(height: 24),
+            Text('Scanning for devices…',
+                style: GoogleFonts.manrope(
+                    fontSize: 18, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            Text(
+              'Make sure your SafeWear watch is nearby and Bluetooth is on.',
+              textAlign: TextAlign.center,
+              style:
+                  GoogleFonts.inter(fontSize: 13, color: SW.onSurfaceVariant),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
@@ -2348,9 +2630,7 @@ class _SensorCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isGradient
-                  ? Colors.white.withAlpha(35)
-                  : iconBg,
+              color: isGradient ? Colors.white.withAlpha(35) : iconBg,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon,
@@ -2443,7 +2723,8 @@ class _DeviceActionTile extends StatelessWidget {
           subtitle,
           style: GoogleFonts.inter(fontSize: 12, color: SW.onSurfaceVariant),
         ),
-        trailing: trailing ?? Icon(Icons.chevron_right_rounded, color: SW.outline),
+        trailing:
+            trailing ?? Icon(Icons.chevron_right_rounded, color: SW.outline),
         onTap: onTap,
       ),
     );
@@ -2453,17 +2734,118 @@ class _DeviceActionTile extends StatelessWidget {
 // ─────────────────────────────────────────────────────────
 // PROFILE TAB
 // ─────────────────────────────────────────────────────────
-class _ProfileTab extends StatelessWidget {
+class _ProfileTab extends ConsumerWidget {
   final UserProfile user;
-  const _ProfileTab({required this.user});
+  final VoidCallback onOpenContacts;
+  final VoidCallback onOpenSafeZones;
+  final VoidCallback onOpenMedical;
+  final VoidCallback onOpenModeSelector;
+
+  const _ProfileTab({
+    required this.user,
+    required this.onOpenContacts,
+    required this.onOpenSafeZones,
+    required this.onOpenMedical,
+    required this.onOpenModeSelector,
+  });
+
+  void _showEditProfileSheet(BuildContext context, WidgetRef ref) {
+    final nameCtrl = TextEditingController(text: user.name);
+    final phoneCtrl = TextEditingController(text: user.phone);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: SW.surfaceContainerLowest,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            24, 24, 24, 24 + MediaQuery.of(ctx).viewInsets.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Edit Profile',
+                style: GoogleFonts.manrope(
+                    fontSize: 20, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Full Name',
+                prefixIcon: Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: phoneCtrl,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                labelText: 'Phone Number',
+                prefixIcon: Icon(Icons.phone_outlined),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () {
+                  ref.read(appStateProvider.notifier).saveProfile(UserProfile(
+                        uid: user.uid,
+                        name: nameCtrl.text.trim(),
+                        phone: phoneCtrl.text.trim(),
+                        language: user.language,
+                        trustedContacts: user.trustedContacts,
+                        safeZones: user.safeZones,
+                        medicalProfile: user.medicalProfile,
+                        silentTriggerMode: user.silentTriggerMode,
+                        tier: user.tier,
+                      ));
+                  Navigator.pop(ctx);
+                },
+                child: const Text('Save Changes'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmSignOut(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sign Out?'),
+        content: const Text(
+            'Your profile and contacts will be removed from this device.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: SW.tertiary),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await ref.read(appStateProvider.notifier).clear();
+              if (context.mounted) context.go('/onboarding');
+            },
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: SW.background,
       body: CustomScrollView(
         slivers: [
-          // Profile hero header
           SliverToBoxAdapter(
             child: Container(
               padding: const EdgeInsets.fromLTRB(20, 60, 20, 28),
@@ -2485,8 +2867,7 @@ class _ProfileTab extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white.withAlpha(25),
-                          border:
-                              Border.all(color: Colors.white38, width: 2),
+                          border: Border.all(color: Colors.white38, width: 2),
                         ),
                         child: Center(
                           child: Text(
@@ -2560,10 +2941,7 @@ class _ProfileTab extends StatelessWidget {
                         if (user.tier == SubscriptionTier.free) ...[
                           const SizedBox(width: 10),
                           Container(
-                            width: 1,
-                            height: 14,
-                            color: Colors.white30,
-                          ),
+                              width: 1, height: 14, color: Colors.white30),
                           const SizedBox(width: 10),
                           Text(
                             'Upgrade',
@@ -2581,12 +2959,10 @@ class _ProfileTab extends StatelessWidget {
               ),
             ),
           ),
-
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // Stats row
                 Transform.translate(
                   offset: const Offset(0, -16),
                   child: Container(
@@ -2619,67 +2995,82 @@ class _ProfileTab extends StatelessWidget {
                         ),
                         _ProfileStatDivider(),
                         _ProfileStat(
-                          value: '3',
-                          label: 'Alerts',
-                          icon: Icons.notifications_rounded,
+                          value: '${user.safeZones.length}',
+                          label: 'Safe Zones',
+                          icon: Icons.place_rounded,
                           color: SW.tertiary,
                         ),
                       ],
                     ),
                   ),
                 ),
-
-                // Settings sections
                 _SectionLabel(label: 'Account'),
                 _ProfileMenuItem(
-                    icon: Icons.person_outline_rounded,
-                    label: 'Edit Profile'),
+                  icon: Icons.person_outline_rounded,
+                  label: 'Edit Profile',
+                  onTap: () => _showEditProfileSheet(context, ref),
+                ),
                 _ProfileMenuItem(
-                    icon: Icons.contacts_outlined,
-                    label: 'Trusted Contacts',
-                    badge: '${user.trustedContacts.length}'),
+                  icon: Icons.contacts_outlined,
+                  label: 'Trusted Contacts',
+                  badge: '${user.trustedContacts.length}',
+                  onTap: onOpenContacts,
+                ),
                 _ProfileMenuItem(
-                    icon: Icons.language_rounded,
-                    label: 'Language',
-                    value: user.language.toUpperCase()),
+                  icon: Icons.language_rounded,
+                  label: 'Language',
+                  value: user.language.toUpperCase(),
+                  onTap: () {},
+                ),
                 const SizedBox(height: 12),
-
                 _SectionLabel(label: 'Safety'),
                 _ProfileMenuItem(
-                    icon: Icons.location_on_outlined,
-                    label: 'Safe Zones',
-                    badge: '${user.safeZones.length}'),
+                  icon: Icons.location_on_outlined,
+                  label: 'Safe Zones',
+                  badge: '${user.safeZones.length}',
+                  onTap: onOpenSafeZones,
+                ),
                 _ProfileMenuItem(
-                    icon: Icons.local_hospital_rounded,
-                    label: 'Medical Profile'),
+                  icon: Icons.local_hospital_rounded,
+                  label: 'Medical Profile',
+                  onTap: onOpenMedical,
+                ),
                 _ProfileMenuItem(
-                    icon: Icons.shield_outlined,
-                    label: 'Emergency Mode'),
+                  icon: Icons.shield_outlined,
+                  label: 'Emergency Mode',
+                  onTap: onOpenModeSelector,
+                ),
                 const SizedBox(height: 12),
-
                 _SectionLabel(label: 'App'),
                 _ProfileMenuItem(
-                    icon: Icons.notifications_outlined,
-                    label: 'Notifications'),
+                  icon: Icons.notifications_outlined,
+                  label: 'Notifications',
+                  onTap: () {},
+                ),
                 _ProfileMenuItem(
-                    icon: Icons.security_outlined,
-                    label: 'Privacy & Security'),
+                  icon: Icons.security_outlined,
+                  label: 'Privacy & Security',
+                  onTap: () {},
+                ),
                 _ProfileMenuItem(
-                    icon: Icons.help_outline_rounded,
-                    label: 'Help & Support'),
+                  icon: Icons.help_outline_rounded,
+                  label: 'Help & Support',
+                  onTap: () {},
+                ),
                 const SizedBox(height: 12),
-
                 _SectionLabel(label: 'Subscription'),
                 _ProfileMenuItem(
                   icon: Icons.star_outline_rounded,
                   label: 'Upgrade to Pro',
                   iconColor: const Color(0xFFD97706),
                   bgColor: const Color(0xFFFEF3C7),
+                  onTap: () {},
                 ),
                 _ProfileMenuItem(
                   icon: Icons.logout_rounded,
                   label: 'Sign Out',
                   color: SW.tertiary,
+                  onTap: () => _confirmSignOut(context, ref),
                 ),
               ]),
             ),
@@ -2778,9 +3169,11 @@ class _ProfileMenuItem extends StatelessWidget {
   final Color? bgColor;
   final String? badge;
   final String? value;
+  final VoidCallback onTap;
   const _ProfileMenuItem({
     required this.icon,
     required this.label,
+    required this.onTap,
     this.color,
     this.iconColor,
     this.bgColor,
@@ -2802,7 +3195,8 @@ class _ProfileMenuItem extends StatelessWidget {
         border: Border.all(color: SW.outlineVariant.withAlpha(50)),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
         leading: Container(
           width: 40,
           height: 40,
@@ -2833,7 +3227,8 @@ class _ProfileMenuItem extends StatelessWidget {
               ),
             if (badge != null)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: SW.primary.withAlpha(18),
                   borderRadius: BorderRadius.circular(100),
@@ -2851,7 +3246,7 @@ class _ProfileMenuItem extends StatelessWidget {
             Icon(Icons.chevron_right_rounded, color: SW.outline, size: 20),
           ],
         ),
-        onTap: () {},
+        onTap: onTap,
       ),
     );
   }
