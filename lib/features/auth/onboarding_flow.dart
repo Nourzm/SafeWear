@@ -22,6 +22,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
 
   // Collected data across steps
   String _language = 'ar';
+  bool _darkMode = false;
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final List<TrustedContact> _contacts = [];
@@ -29,7 +30,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
   final MedicalProfile _medicalProfile = MedicalProfile();
 
   void _next() {
-    if (_currentPage < 4) {
+    if (_currentPage < 5) {
       _controller.nextPage(
         duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOut,
@@ -53,6 +54,10 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
       silentTriggerMode: _emergencyMode,
       tier: SubscriptionTier.free,
     );
+    // Apply the chosen appearance just before entering the app, so the
+    // dashboard opens already themed (applying it mid-flow would rebuild the
+    // whole tree and reset onboarding).
+    await ref.read(darkModeProvider.notifier).setDark(_darkMode);
     await ref.read(appStateProvider.notifier).saveProfile(user);
     if (mounted) context.go('/dashboard');
   }
@@ -68,7 +73,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
       backgroundColor: SW.surface,
       body: Column(
         children: [
-          _ProgressBar(currentPage: _currentPage, totalPages: 5),
+          _ProgressBar(currentPage: _currentPage, totalPages: 6),
           Expanded(
             child: PageView(
               controller: _controller,
@@ -77,6 +82,11 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
                 _LanguageStep(
                   selected: _language,
                   onSelect: (lang) => setState(() => _language = lang),
+                  onNext: _next,
+                ),
+                _ThemeStep(
+                  darkSelected: _darkMode,
+                  onSelect: (v) => setState(() => _darkMode = v),
                   onNext: _next,
                 ),
                 _ProfileStep(
@@ -227,7 +237,221 @@ class _LangOption extends StatelessWidget {
   }
 }
 
-// Step 2: Profile + phone number
+// Step 2: Appearance (light / dark)
+class _ThemeStep extends StatelessWidget {
+  final bool darkSelected;
+  final ValueChanged<bool> onSelect;
+  final VoidCallback onNext;
+  const _ThemeStep({
+    required this.darkSelected,
+    required this.onSelect,
+    required this.onNext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _StepWrapper(
+      title: t('appearance'),
+      subtitle: t('appearanceSub'),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _ThemePreviewCard(
+                  dark: false,
+                  label: t('lightMode'),
+                  selected: !darkSelected,
+                  onTap: () => onSelect(false),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: _ThemePreviewCard(
+                  dark: true,
+                  label: t('darkMode'),
+                  selected: darkSelected,
+                  onTap: () => onSelect(true),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            t('appearanceNote'),
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+                fontSize: 12, color: SW.onSurfaceVariant),
+          ),
+          const Spacer(),
+          _NextButton(onTap: onNext, label: t('continue_')),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThemePreviewCard extends StatelessWidget {
+  final bool dark;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _ThemePreviewCard({
+    required this.dark,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Fixed colors: each card depicts its own theme regardless of the
+    // currently active one.
+    final bg = dark ? const Color(0xFF0F1218) : const Color(0xFFF9F9FF);
+    final card = dark ? const Color(0xFF171C26) : Colors.white;
+    final accent = dark ? const Color(0xFF5B9BD8) : const Color(0xFF005394);
+    final line = dark ? const Color(0xFF353D4C) : const Color(0xFFDDE2F3);
+    final textColor = dark ? const Color(0xFFE7EAF3) : const Color(0xFF161C27);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? SW.primary : SW.outlineVariant,
+            width: selected ? 3 : 1.5,
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: SW.primary.withValues(alpha: 0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : null,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(17),
+          child: Column(
+            children: [
+              // Mini phone mock
+              Container(
+                height: 190,
+                color: bg,
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header bar
+                    Row(
+                      children: [
+                        Container(
+                          width: 18,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            color: accent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          width: 52,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: accent,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Hero card
+                    Container(
+                      height: 48,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [accent, accent.withValues(alpha: 0.7)],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // SOS circle
+                    Center(
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFC63131),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.sos_rounded,
+                              color: Colors.white, size: 20),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // List rows
+                    for (int i = 0; i < 2; i++) ...[
+                      Container(
+                        height: 10,
+                        margin: const EdgeInsets.only(bottom: 6),
+                        decoration: BoxDecoration(
+                          color: card,
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: line),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              // Label
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                color: card,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      dark
+                          ? Icons.dark_mode_rounded
+                          : Icons.light_mode_rounded,
+                      size: 16,
+                      color: selected ? accent : textColor,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      label,
+                      style: GoogleFonts.manrope(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: selected ? accent : textColor,
+                      ),
+                    ),
+                    if (selected) ...[
+                      const SizedBox(width: 6),
+                      Icon(Icons.check_circle_rounded,
+                          size: 16, color: accent),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Step 3: Profile + phone number
 class _ProfileStep extends StatelessWidget {
   final TextEditingController nameController;
   final TextEditingController phoneController;

@@ -273,6 +273,18 @@ const Map<String, Map<String, String>> _strings = {
     'ar': 'الإشعارات'
   },
   'darkMode': {'en': 'Dark Mode', 'fr': 'Mode sombre', 'ar': 'الوضع الداكن'},
+  'lightMode': {'en': 'Light Mode', 'fr': 'Mode clair', 'ar': 'الوضع الفاتح'},
+  'appearance': {'en': 'Appearance', 'fr': 'Apparence', 'ar': 'المظهر'},
+  'appearanceSub': {
+    'en': 'Choose how SafeWear should look. You can change this anytime in Profile.',
+    'fr': "Choisissez l'apparence de SafeWear. Modifiable à tout moment dans Profil.",
+    'ar': 'اختاري مظهر SafeWear. يمكنك تغييره في أي وقت من الملف الشخصي.'
+  },
+  'appearanceNote': {
+    'en': 'Dark mode is easier on the eyes at night — when safety matters most.',
+    'fr': 'Le mode sombre est plus doux pour les yeux la nuit — quand la sécurité compte le plus.',
+    'ar': 'الوضع الداكن أريح للعين ليلًا — حين تكون السلامة أهم ما يكون.'
+  },
   'privacySecurity': {
     'en': 'Privacy & Security',
     'fr': 'Confidentialité et sécurité',
