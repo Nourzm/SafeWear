@@ -115,7 +115,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
             onManageContacts: _openContacts,
             onOpenHistory: () => _push(const AlertHistoryScreen()),
           ),
-          const _DeviceTab(),
+          // Not const: must rebuild when the app language changes.
+          _DeviceTab(),
           _ProfileTab(
             user: user,
             onOpenContacts: _openContacts,
@@ -1707,8 +1708,8 @@ class _AlertsTabState extends State<_AlertsTab> {
                   icon: Icons.warning_rounded,
                   iconColor: const Color(0xFFD97706),
                   iconBg: const Color(0xFFFEF3C7),
-                  title: 'Unusual Activity',
-                  subtitle: 'Alert when vitals spike unexpectedly',
+                  title: t('unusualActivity'),
+                  subtitle: t('unusualActivitySub'),
                   value: _toggles['unusualActivity'] ?? true,
                   onChanged: (v) => _setToggle('unusualActivity', v),
                 ),
@@ -1716,8 +1717,8 @@ class _AlertsTabState extends State<_AlertsTab> {
                   icon: Icons.location_off_rounded,
                   iconColor: SW.primary,
                   iconBg: SW.surfaceContainerHigh,
-                  title: 'Geofence Exit',
-                  subtitle: 'Alert when leaving safe zones',
+                  title: t('geofenceExit'),
+                  subtitle: t('geofenceExitSub'),
                   value: _toggles['geofenceExit'] ?? true,
                   onChanged: (v) => _setToggle('geofenceExit', v),
                 ),
@@ -1725,8 +1726,8 @@ class _AlertsTabState extends State<_AlertsTab> {
                   icon: Icons.watch_off_rounded,
                   iconColor: SW.onSurfaceVariant,
                   iconBg: SW.surfaceContainerHigh,
-                  title: 'Device Disconnected',
-                  subtitle: 'Alert when watch loses connection',
+                  title: t('deviceDisconnected'),
+                  subtitle: t('deviceDisconnectedSub'),
                   value: _toggles['deviceDisconnected'] ?? false,
                   onChanged: (v) => _setToggle('deviceDisconnected', v),
                 ),
@@ -1734,8 +1735,8 @@ class _AlertsTabState extends State<_AlertsTab> {
                   icon: Icons.mic_off_rounded,
                   iconColor: const Color(0xFF7C3AED),
                   iconBg: const Color(0xFFF3EEFF),
-                  title: 'Voice Trigger',
-                  subtitle: '"SafeWear contacts" activates silent alert',
+                  title: t('voiceTrigger'),
+                  subtitle: t('voiceTriggerSub'),
                   value: _toggles['voiceTrigger'] ?? true,
                   onChanged: (v) => _setToggle('voiceTrigger', v),
                 ),
@@ -2235,8 +2236,6 @@ class _ContactTile extends StatelessWidget {
 // DEVICE TAB
 // ─────────────────────────────────────────────────────────
 class _DeviceTab extends StatelessWidget {
-  const _DeviceTab();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2299,7 +2298,7 @@ class _DeviceTab extends StatelessWidget {
                                       color: Color(0xFF4ADE80), size: 8),
                                   const SizedBox(width: 6),
                                   Text(
-                                    'Connected',
+                                    t('connected'),
                                     style: GoogleFonts.inter(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
@@ -2392,7 +2391,7 @@ class _DeviceTab extends StatelessWidget {
                         title: t('heartRate'),
                         value: '74',
                         unit: 'bpm',
-                        subtitle: 'Normal range',
+                        subtitle: t('normalRange'),
                         gradient: const LinearGradient(
                           colors: [Color(0xFFFF4D6D), Color(0xFFFF8FA3)],
                           begin: Alignment.topLeft,
@@ -2406,10 +2405,10 @@ class _DeviceTab extends StatelessWidget {
                         icon: Icons.directions_walk_rounded,
                         iconColor: const Color(0xFF7C3AED),
                         iconBg: const Color(0xFFF3EEFF),
-                        title: 'Steps Today',
+                        title: t('stepsToday'),
                         value: '3,241',
-                        unit: 'steps',
-                        subtitle: '32% of daily goal',
+                        unit: '',
+                        subtitle: t('ofDailyGoal'),
                         gradient: null,
                       ),
                     ),
@@ -2423,10 +2422,10 @@ class _DeviceTab extends StatelessWidget {
                         icon: Icons.thermostat_rounded,
                         iconColor: const Color(0xFFD97706),
                         iconBg: const Color(0xFFFEF3C7),
-                        title: 'Skin Temp',
+                        title: t('skinTemp'),
                         value: '36.6',
                         unit: '°C',
-                        subtitle: 'Normal',
+                        subtitle: t('normal'),
                         gradient: null,
                       ),
                     ),
@@ -2439,7 +2438,7 @@ class _DeviceTab extends StatelessWidget {
                         title: 'SpO₂',
                         value: '98',
                         unit: '%',
-                        subtitle: 'Excellent',
+                        subtitle: t('excellent'),
                         gradient: null,
                       ),
                     ),
@@ -2457,14 +2456,14 @@ class _DeviceTab extends StatelessWidget {
                 const SizedBox(height: 12),
                 _DeviceActionTile(
                   icon: Icons.bluetooth_searching_rounded,
-                  title: 'Scan for Devices',
-                  subtitle: 'Find SafeWear devices nearby',
+                  title: t('scanDevices'),
+                  subtitle: t('scanDevicesSub'),
                   onTap: () => _showScanningSheet(context),
                 ),
                 _DeviceActionTile(
                   icon: Icons.system_update_rounded,
-                  title: 'Firmware Update',
-                  subtitle: 'v2.1.0 — Up to date',
+                  title: t('firmwareUpdate'),
+                  subtitle: t('upToDate'),
                   onTap: () {},
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(
@@ -2474,7 +2473,7 @@ class _DeviceTab extends StatelessWidget {
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: Text(
-                      'Latest',
+                      t('latest'),
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -2485,8 +2484,8 @@ class _DeviceTab extends StatelessWidget {
                 ),
                 _DeviceActionTile(
                   icon: Icons.vibration_rounded,
-                  title: 'Test Haptics',
-                  subtitle: 'Verify alert vibration patterns',
+                  title: t('testHaptics'),
+                  subtitle: t('testHapticsSub'),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -2500,8 +2499,8 @@ class _DeviceTab extends StatelessWidget {
                 ),
                 _DeviceActionTile(
                   icon: Icons.link_off_rounded,
-                  title: 'Unpair Device',
-                  subtitle: 'Remove this device from your account',
+                  title: t('unpairDevice'),
+                  subtitle: t('unpairDeviceSub'),
                   color: SW.tertiary,
                   onTap: () {},
                 ),

@@ -108,6 +108,46 @@ const Map<String, Map<String, String>> _strings = {
     'fr': 'Alertes intelligentes',
     'ar': 'تنبيهات ذكية'
   },
+  'unusualActivity': {
+    'en': 'Unusual Activity',
+    'fr': 'Activité inhabituelle',
+    'ar': 'نشاط غير معتاد'
+  },
+  'unusualActivitySub': {
+    'en': 'Alert when vitals spike unexpectedly',
+    'fr': 'Alerter si les signes vitaux grimpent soudainement',
+    'ar': 'تنبيه عند ارتفاع المؤشرات الحيوية فجأة'
+  },
+  'geofenceExit': {
+    'en': 'Geofence Exit',
+    'fr': 'Sortie de zone',
+    'ar': 'مغادرة المنطقة الآمنة'
+  },
+  'geofenceExitSub': {
+    'en': 'Alert when leaving safe zones',
+    'fr': 'Alerter en quittant les zones sûres',
+    'ar': 'تنبيه عند مغادرة المناطق الآمنة'
+  },
+  'deviceDisconnected': {
+    'en': 'Device Disconnected',
+    'fr': 'Appareil déconnecté',
+    'ar': 'انقطاع اتصال الجهاز'
+  },
+  'deviceDisconnectedSub': {
+    'en': 'Alert when watch loses connection',
+    'fr': 'Alerter si la montre perd la connexion',
+    'ar': 'تنبيه عند فقدان الساعة للاتصال'
+  },
+  'voiceTrigger': {
+    'en': 'Voice Trigger',
+    'fr': 'Déclencheur vocal',
+    'ar': 'التفعيل الصوتي'
+  },
+  'voiceTriggerSub': {
+    'en': '"SafeWear contacts" activates silent alert',
+    'fr': '« SafeWear contacts » déclenche une alerte silencieuse',
+    'ar': '«SafeWear contacts» تُفعّل تنبيهًا صامتًا'
+  },
   'alertHistory': {
     'en': 'Alert History',
     'fr': 'Historique des alertes',
@@ -141,6 +181,65 @@ const Map<String, Map<String, String>> _strings = {
     'en': 'Device Actions',
     'fr': "Actions de l'appareil",
     'ar': 'إجراءات الجهاز'
+  },
+  'connected': {'en': 'Connected', 'fr': 'Connecté', 'ar': 'متصل'},
+  'skinTemp': {
+    'en': 'Skin Temp',
+    'fr': 'Temp. cutanée',
+    'ar': 'حرارة الجلد'
+  },
+  'normalRange': {
+    'en': 'Normal range',
+    'fr': 'Plage normale',
+    'ar': 'معدل طبيعي'
+  },
+  'normal': {'en': 'Normal', 'fr': 'Normal', 'ar': 'طبيعي'},
+  'excellent': {'en': 'Excellent', 'fr': 'Excellent', 'ar': 'ممتاز'},
+  'ofDailyGoal': {
+    'en': '32% of daily goal',
+    'fr': '32 % de l’objectif',
+    'ar': '٣٢٪ من الهدف اليومي'
+  },
+  'scanDevices': {
+    'en': 'Scan for Devices',
+    'fr': 'Rechercher des appareils',
+    'ar': 'البحث عن الأجهزة'
+  },
+  'scanDevicesSub': {
+    'en': 'Find SafeWear devices nearby',
+    'fr': 'Trouver les appareils SafeWear à proximité',
+    'ar': 'العثور على أجهزة SafeWear القريبة'
+  },
+  'firmwareUpdate': {
+    'en': 'Firmware Update',
+    'fr': 'Mise à jour du firmware',
+    'ar': 'تحديث النظام'
+  },
+  'upToDate': {
+    'en': 'v2.1.0 — Up to date',
+    'fr': 'v2.1.0 — À jour',
+    'ar': 'v2.1.0 — محدّث'
+  },
+  'latest': {'en': 'Latest', 'fr': 'À jour', 'ar': 'الأحدث'},
+  'testHaptics': {
+    'en': 'Test Haptics',
+    'fr': 'Tester les vibrations',
+    'ar': 'اختبار الاهتزاز'
+  },
+  'testHapticsSub': {
+    'en': 'Verify alert vibration patterns',
+    'fr': "Vérifier les vibrations d'alerte",
+    'ar': 'التحقق من أنماط اهتزاز التنبيه'
+  },
+  'unpairDevice': {
+    'en': 'Unpair Device',
+    'fr': "Dissocier l'appareil",
+    'ar': 'إلغاء اقتران الجهاز'
+  },
+  'unpairDeviceSub': {
+    'en': 'Remove this device from your account',
+    'fr': 'Retirer cet appareil de votre compte',
+    'ar': 'إزالة هذا الجهاز من حسابك'
   },
 
   // ── Profile tab ──
