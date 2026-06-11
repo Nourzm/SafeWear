@@ -30,11 +30,28 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            // Provided by CI (decoded from the KEYSTORE_BASE64 secret).
+            val ksPath = System.getenv("SAFEWEAR_KEYSTORE_PATH")
+            if (ksPath != null) {
+                storeFile = file(ksPath)
+                storePassword = System.getenv("SAFEWEAR_KEYSTORE_PASSWORD")
+                keyAlias = "safewear"
+                keyPassword = System.getenv("SAFEWEAR_KEYSTORE_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Sign with the permanent release key when available (CI), so
+            // every distributed APK can update in place. Falls back to debug
+            // keys for local `flutter run --release`.
+            signingConfig =
+                if (System.getenv("SAFEWEAR_KEYSTORE_PATH") != null)
+                    signingConfigs.getByName("release")
+                else signingConfigs.getByName("debug")
         }
     }
 }
