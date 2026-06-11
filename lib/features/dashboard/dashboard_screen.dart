@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app/app_state.dart';
+import '../../app/i18n.dart';
 import '../../app/theme.dart';
 import '../../services/alert_service.dart';
 import '../../shared/models/user_model.dart';
@@ -130,26 +131,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         selectedIndex: _navIndex,
         onDestinationSelected: (i) => setState(() => _navIndex = i),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: 'Home',
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home_rounded),
+            label: t('home'),
           ),
           NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications_rounded),
-            label: 'Alerts',
+            icon: const Icon(Icons.notifications_outlined),
+            selectedIcon: const Icon(Icons.notifications_rounded),
+            label: t('alerts'),
           ),
           NavigationDestination(
-            icon: Icon(Icons.watch_outlined),
-            selectedIcon: Icon(Icons.watch_rounded),
-            label: 'Device',
+            icon: const Icon(Icons.watch_outlined),
+            selectedIcon: const Icon(Icons.watch_rounded),
+            label: t('device'),
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline_rounded),
-            selectedIcon: Icon(Icons.person_rounded),
-            label: 'Profile',
+            icon: const Icon(Icons.person_outline_rounded),
+            selectedIcon: const Icon(Icons.person_rounded),
+            label: t('profile'),
           ),
         ],
       ),
@@ -189,9 +190,9 @@ class _HomeTab extends StatelessWidget {
 
   String get _greeting {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return t('goodMorning');
+    if (hour < 17) return t('goodAfternoon');
+    return t('goodEvening');
   }
 
   @override
@@ -403,7 +404,7 @@ class _GreetingCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Protected',
+                      t('protected'),
                       style: GoogleFonts.manrope(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -426,19 +427,19 @@ class _GreetingCard extends StatelessWidget {
             child: Row(
               children: [
                 _GreetingStat(
-                  label: 'Contacts',
+                  label: t('contacts'),
                   value: '${user.trustedContacts.length}',
                   icon: Icons.people_rounded,
                 ),
                 _VertDivider(),
                 _GreetingStat(
-                  label: 'Safe Days',
+                  label: t('safeDays'),
                   value: '12',
                   icon: Icons.verified_user_rounded,
                 ),
                 _VertDivider(),
                 _GreetingStat(
-                  label: 'Safe Zones',
+                  label: t('safeZones'),
                   value: '${user.safeZones.length}',
                   icon: Icons.place_rounded,
                 ),
@@ -519,11 +520,11 @@ class _SOSSection extends StatelessWidget {
   String get _modeLabel {
     switch (mode) {
       case EmergencyMode.contacts:
-        return 'Mode: Notify Contacts';
+        return t('modeContacts');
       case EmergencyMode.police:
-        return 'Mode: Contacts + Police';
+        return t('modePolice');
       case EmergencyMode.saveMe:
-        return 'Mode: Maximum Response';
+        return t('modeMax');
     }
   }
 
@@ -534,7 +535,7 @@ class _SOSSection extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            'EMERGENCY SOS',
+            t('emergencySos'),
             style: GoogleFonts.inter(
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -544,7 +545,7 @@ class _SOSSection extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Tap to start the 20-second countdown',
+            t('sosHint'),
             style: GoogleFonts.inter(
               fontSize: 12,
               color: SW.onSurfaceVariant,
@@ -708,7 +709,7 @@ class _QuickActionsRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Actions',
+          t('quickActions'),
           style: GoogleFonts.manrope(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -720,7 +721,7 @@ class _QuickActionsRow extends StatelessWidget {
           children: [
             _QuickAction(
               icon: Icons.people_alt_rounded,
-              label: 'Contacts',
+              label: t('contacts'),
               color: SW.primary,
               bg: SW.surfaceContainerHigh,
               onTap: onContacts,
@@ -728,7 +729,7 @@ class _QuickActionsRow extends StatelessWidget {
             const SizedBox(width: 10),
             _QuickAction(
               icon: Icons.map_rounded,
-              label: 'Risk Map',
+              label: t('riskMap'),
               color: const Color(0xFF7C3AED),
               bg: const Color(0xFFF3EEFF),
               onTap: onRiskMap,
@@ -736,7 +737,7 @@ class _QuickActionsRow extends StatelessWidget {
             const SizedBox(width: 10),
             _QuickAction(
               icon: Icons.place_rounded,
-              label: 'Safe Zones',
+              label: t('safeZones'),
               color: SW.secondary,
               bg: SW.secondaryContainer,
               onTap: onSafeZones,
@@ -744,7 +745,7 @@ class _QuickActionsRow extends StatelessWidget {
             const SizedBox(width: 10),
             _QuickAction(
               icon: Icons.local_hospital_rounded,
-              label: 'Medical',
+              label: t('medical'),
               color: SW.tertiary,
               bg: const Color(0xFFFFE4E6),
               onTap: onMedical,
@@ -845,7 +846,7 @@ class _FakeCallBanner extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Fake Call',
+                    t('fakeCall'),
                     style: GoogleFonts.manrope(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
@@ -853,7 +854,7 @@ class _FakeCallBanner extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Get a realistic incoming call — a discreet way out.',
+                    t('fakeCallSub'),
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: Colors.white70,
@@ -870,7 +871,7 @@ class _FakeCallBanner extends StatelessWidget {
                 borderRadius: BorderRadius.circular(100),
               ),
               child: Text(
-                'Ring Now',
+                t('ringNow'),
                 style: GoogleFonts.manrope(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
@@ -1344,7 +1345,7 @@ class _LocationBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Current Location',
+                  t('currentLocation'),
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -1434,7 +1435,7 @@ class _RecentActivity extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recent Activity',
+              t('recentActivity'),
               style: GoogleFonts.manrope(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -1444,7 +1445,7 @@ class _RecentActivity extends StatelessWidget {
             TextButton(
               onPressed: onViewAll,
               child: Text(
-                'View All',
+                t('viewAll'),
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -1617,7 +1618,7 @@ class _AlertsTabState extends State<_AlertsTab> {
             floating: true,
             backgroundColor: SW.surface.withAlpha(220),
             title: Text(
-              'Alerts',
+              t('alerts'),
               style: GoogleFonts.manrope(fontWeight: FontWeight.w800),
             ),
           ),
@@ -1654,7 +1655,7 @@ class _AlertsTabState extends State<_AlertsTab> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Emergency Hub',
+                              t('emergencyHub'),
                               style: GoogleFonts.manrope(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w800,
@@ -1663,7 +1664,7 @@ class _AlertsTabState extends State<_AlertsTab> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'One tap alerts your entire network simultaneously.',
+                              t('hubSub'),
                               style: GoogleFonts.inter(
                                 fontSize: 13,
                                 color: Colors.white70,
@@ -1671,16 +1672,17 @@ class _AlertsTabState extends State<_AlertsTab> {
                               ),
                             ),
                             const SizedBox(height: 14),
-                            Row(
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
                               children: [
                                 _AlertStatChip(
                                     icon: Icons.people_rounded,
                                     label:
-                                        '${user.trustedContacts.length} contacts'),
-                                const SizedBox(width: 8),
+                                        '${user.trustedContacts.length} ${t('contacts')}'),
                                 _AlertStatChip(
                                     icon: Icons.gps_fixed_rounded,
-                                    label: 'GPS active'),
+                                    label: t('gpsActive')),
                               ],
                             ),
                           ],
@@ -1693,7 +1695,7 @@ class _AlertsTabState extends State<_AlertsTab> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Smart Alerts',
+                  t('smartAlerts'),
                   style: GoogleFonts.manrope(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -1742,7 +1744,7 @@ class _AlertsTabState extends State<_AlertsTab> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Alert History',
+                      t('alertHistory'),
                       style: GoogleFonts.manrope(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -1752,7 +1754,7 @@ class _AlertsTabState extends State<_AlertsTab> {
                     TextButton(
                       onPressed: widget.onOpenHistory,
                       child: Text(
-                        'View All',
+                        t('viewAll'),
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -1795,7 +1797,7 @@ class _AlertsTabState extends State<_AlertsTab> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Trusted Contacts',
+                      t('trustedContacts'),
                       style: GoogleFonts.manrope(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -1805,7 +1807,7 @@ class _AlertsTabState extends State<_AlertsTab> {
                     TextButton(
                       onPressed: widget.onManageContacts,
                       child: Text(
-                        'Manage',
+                        t('manage'),
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -2245,7 +2247,7 @@ class _DeviceTab extends StatelessWidget {
             floating: true,
             backgroundColor: SW.surface.withAlpha(220),
             title: Text(
-              'My Device',
+              t('myDevice'),
               style: GoogleFonts.manrope(fontWeight: FontWeight.w800),
             ),
           ),
@@ -2324,16 +2326,16 @@ class _DeviceTab extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Row(
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
                               children: [
                                 _DeviceStatBadge(
                                     icon: Icons.battery_full_rounded,
                                     value: '94%'),
-                                const SizedBox(width: 10),
                                 _DeviceStatBadge(
                                     icon: Icons.bluetooth_rounded,
                                     value: 'BLE'),
-                                const SizedBox(width: 10),
                                 _DeviceStatBadge(
                                     icon: Icons.wifi_rounded, value: 'Synced'),
                               ],
@@ -2372,7 +2374,7 @@ class _DeviceTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Live Sensor Data',
+                  t('liveSensorData'),
                   style: GoogleFonts.manrope(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -2387,7 +2389,7 @@ class _DeviceTab extends StatelessWidget {
                         icon: Icons.favorite_rounded,
                         iconColor: const Color(0xFFFF4D6D),
                         iconBg: const Color(0xFFFFE4E8),
-                        title: 'Heart Rate',
+                        title: t('heartRate'),
                         value: '74',
                         unit: 'bpm',
                         subtitle: 'Normal range',
@@ -2445,7 +2447,7 @@ class _DeviceTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Device Actions',
+                  t('deviceActions'),
                   style: GoogleFonts.manrope(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -2814,6 +2816,61 @@ class _ProfileTab extends ConsumerWidget {
     );
   }
 
+  void _showLanguageSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: SW.surfaceContainerLowest,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(t('language'),
+                style: GoogleFonts.manrope(
+                    fontSize: 20, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 16),
+            for (final entry in const [
+              ['ar', 'العربية'],
+              ['fr', 'Français'],
+              ['en', 'English'],
+            ])
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  user.language == entry[0]
+                      ? Icons.radio_button_checked_rounded
+                      : Icons.radio_button_off_rounded,
+                  color:
+                      user.language == entry[0] ? SW.primary : SW.outline,
+                ),
+                title: Text(entry[1],
+                    style: GoogleFonts.manrope(
+                        fontSize: 16, fontWeight: FontWeight.w700)),
+                onTap: () {
+                  ref.read(appStateProvider.notifier).saveProfile(UserProfile(
+                        uid: user.uid,
+                        name: user.name,
+                        phone: user.phone,
+                        language: entry[0],
+                        trustedContacts: user.trustedContacts,
+                        safeZones: user.safeZones,
+                        medicalProfile: user.medicalProfile,
+                        silentTriggerMode: user.silentTriggerMode,
+                        tier: user.tier,
+                      ));
+                  Navigator.pop(ctx);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _confirmSignOut(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
@@ -2931,8 +2988,8 @@ class _ProfileTab extends ConsumerWidget {
                         const SizedBox(width: 6),
                         Text(
                           user.tier == SubscriptionTier.free
-                              ? 'Free Plan'
-                              : 'Pro Plan',
+                              ? t('freePlan')
+                              : t('proPlan'),
                           style: GoogleFonts.manrope(
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -2944,7 +3001,7 @@ class _ProfileTab extends ConsumerWidget {
                               width: 1, height: 14, color: Colors.white30),
                           const SizedBox(width: 10),
                           Text(
-                            'Upgrade',
+                            t('upgrade'),
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -2982,21 +3039,21 @@ class _ProfileTab extends ConsumerWidget {
                       children: [
                         _ProfileStat(
                           value: '${user.trustedContacts.length}',
-                          label: 'Contacts',
+                          label: t('contacts'),
                           icon: Icons.people_rounded,
                           color: SW.primary,
                         ),
                         _ProfileStatDivider(),
                         _ProfileStat(
                           value: '12',
-                          label: 'Safe Days',
+                          label: t('safeDays'),
                           icon: Icons.verified_user_rounded,
                           color: SW.secondary,
                         ),
                         _ProfileStatDivider(),
                         _ProfileStat(
                           value: '${user.safeZones.length}',
-                          label: 'Safe Zones',
+                          label: t('safeZones'),
                           icon: Icons.place_rounded,
                           color: SW.tertiary,
                         ),
@@ -3004,71 +3061,71 @@ class _ProfileTab extends ConsumerWidget {
                     ),
                   ),
                 ),
-                _SectionLabel(label: 'Account'),
+                _SectionLabel(label: t('account')),
                 _ProfileMenuItem(
                   icon: Icons.person_outline_rounded,
-                  label: 'Edit Profile',
+                  label: t('editProfile'),
                   onTap: () => _showEditProfileSheet(context, ref),
                 ),
                 _ProfileMenuItem(
                   icon: Icons.contacts_outlined,
-                  label: 'Trusted Contacts',
+                  label: t('trustedContacts'),
                   badge: '${user.trustedContacts.length}',
                   onTap: onOpenContacts,
                 ),
                 _ProfileMenuItem(
                   icon: Icons.language_rounded,
-                  label: 'Language',
+                  label: t('language'),
                   value: user.language.toUpperCase(),
-                  onTap: () {},
+                  onTap: () => _showLanguageSheet(context, ref),
                 ),
                 const SizedBox(height: 12),
-                _SectionLabel(label: 'Safety'),
+                _SectionLabel(label: t('safety')),
                 _ProfileMenuItem(
                   icon: Icons.location_on_outlined,
-                  label: 'Safe Zones',
+                  label: t('safeZones'),
                   badge: '${user.safeZones.length}',
                   onTap: onOpenSafeZones,
                 ),
                 _ProfileMenuItem(
                   icon: Icons.local_hospital_rounded,
-                  label: 'Medical Profile',
+                  label: t('medicalProfile'),
                   onTap: onOpenMedical,
                 ),
                 _ProfileMenuItem(
                   icon: Icons.shield_outlined,
-                  label: 'Emergency Mode',
+                  label: t('emergencyMode'),
                   onTap: onOpenModeSelector,
                 ),
                 const SizedBox(height: 12),
-                _SectionLabel(label: 'App'),
+                _SectionLabel(label: t('app')),
                 _ProfileMenuItem(
                   icon: Icons.notifications_outlined,
-                  label: 'Notifications',
+                  label: t('notifications'),
                   onTap: () {},
                 ),
                 _ProfileMenuItem(
                   icon: Icons.security_outlined,
-                  label: 'Privacy & Security',
+                  label: t('privacySecurity'),
                   onTap: () {},
                 ),
                 _ProfileMenuItem(
                   icon: Icons.help_outline_rounded,
-                  label: 'Help & Support',
+                  label: t('helpSupport'),
                   onTap: () {},
                 ),
                 const SizedBox(height: 12),
-                _SectionLabel(label: 'Subscription'),
+                _SectionLabel(label: t('subscription')),
                 _ProfileMenuItem(
                   icon: Icons.star_outline_rounded,
-                  label: 'Upgrade to Pro',
+                  label: t('upgradeToPro'),
                   iconColor: const Color(0xFFD97706),
                   bgColor: const Color(0xFFFEF3C7),
                   onTap: () {},
                 ),
                 _ProfileMenuItem(
                   icon: Icons.logout_rounded,
-                  label: 'Sign Out',
+                  label: t('signOut'),
                   color: SW.tertiary,
                   onTap: () => _confirmSignOut(context, ref),
                 ),

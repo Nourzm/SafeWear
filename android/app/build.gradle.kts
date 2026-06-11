@@ -24,7 +24,7 @@ android {
         applicationId = "com.safewear"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 23  // Required by record_android + flutter_blue_plus + Firebase Auth
+        minSdk = flutter.minSdkVersion  // Required by record_android + flutter_blue_plus + Firebase Auth
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

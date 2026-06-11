@@ -1,8 +1,10 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../app/app_state.dart';
+import '../../app/i18n.dart';
 import '../../app/theme.dart';
 import '../../shared/models/user_model.dart';
 
@@ -57,7 +59,12 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    // Apply the chosen language (and RTL for Arabic) immediately, so the
+    // very first selection visibly switches the whole flow.
+    currentLang = _language;
+    return Directionality(
+      textDirection: isRtl(_language) ? TextDirection.rtl : TextDirection.ltr,
+      child: Scaffold(
       backgroundColor: SW.surface,
       body: Column(
         children: [
@@ -92,6 +99,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -140,8 +148,8 @@ class _LanguageStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _StepWrapper(
-      title: 'Welcome to SafeWear',
-      subtitle: 'Choose your language / اختر لغتك / Choisissez votre langue',
+      title: t('welcome'),
+      subtitle: 'اختر لغتك  ·  Choisissez votre langue  ·  Choose your language',
       child: Column(
         children: [
           _LangOption(
@@ -165,7 +173,7 @@ class _LanguageStep extends StatelessWidget {
             onTap: () => onSelect('en'),
           ),
           const Spacer(),
-          _NextButton(onTap: onNext, label: 'Continue'),
+          _NextButton(onTap: onNext, label: t('continue_')),
         ],
       ),
     );
@@ -233,15 +241,15 @@ class _ProfileStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _StepWrapper(
-      title: 'Your Profile',
-      subtitle: 'Your name and phone number will be shared with contacts during alerts.',
+      title: t('yourProfile'),
+      subtitle: t('profileSub'),
       child: Column(
         children: [
           TextField(
             controller: nameController,
-            decoration: const InputDecoration(
-              labelText: 'Full Name',
-              prefixIcon: Icon(Icons.person_outline),
+            decoration: InputDecoration(
+              labelText: t('fullName'),
+              prefixIcon: const Icon(Icons.person_outline),
             ),
             textCapitalization: TextCapitalization.words,
           ),
@@ -249,14 +257,14 @@ class _ProfileStep extends StatelessWidget {
           TextField(
             controller: phoneController,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
-              labelText: 'Phone Number',
+            decoration: InputDecoration(
+              labelText: t('phoneNumber'),
               hintText: '+213 xxx xxx xxx',
-              prefixIcon: Icon(Icons.phone_outlined),
+              prefixIcon: const Icon(Icons.phone_outlined),
             ),
           ),
           const Spacer(),
-          _NextButton(onTap: onNext, label: 'Continue'),
+          _NextButton(onTap: onNext, label: t('continue_')),
         ],
       ),
     );
@@ -300,8 +308,8 @@ class _ContactsStepState extends State<_ContactsStep> {
   @override
   Widget build(BuildContext context) {
     return _StepWrapper(
-      title: 'Trusted Contacts',
-      subtitle: 'Up to 5 people who will be alerted instantly in an emergency.',
+      title: t('trustedContacts'),
+      subtitle: t('contactsSub'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -347,13 +355,13 @@ class _ContactsStepState extends State<_ContactsStep> {
             OutlinedButton.icon(
               onPressed: _add,
               icon: const Icon(Icons.add),
-              label: const Text('Add Contact'),
+              label: Text(t('addContact')),
             ),
           ],
           const Spacer(),
           _NextButton(
             onTap: widget.onNext,
-            label: widget.contacts.isEmpty ? 'Skip for now' : 'Continue',
+            label: widget.contacts.isEmpty ? t('skipForNow') : t('continue_'),
           ),
         ],
       ),
@@ -375,9 +383,8 @@ class _EmergencyModeStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _StepWrapper(
-      title: 'Silent Alert Mode',
-      subtitle:
-          'When you cannot speak or act, which response should fire automatically?',
+      title: t('silentAlertMode'),
+      subtitle: t('silentModeSub'),
       child: Column(
         children: [
           _ModeOption(
@@ -405,7 +412,7 @@ class _EmergencyModeStep extends StatelessWidget {
             onTap: () => onSelect(EmergencyMode.saveMe),
           ),
           const Spacer(),
-          _NextButton(onTap: onNext, label: 'Confirm & Continue'),
+          _NextButton(onTap: onNext, label: t('confirmContinue')),
         ],
       ),
     );
@@ -484,42 +491,93 @@ class _SafeZonesStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _StepWrapper(
-      title: 'Safe Zones',
-      subtitle: 'Set locations (home, school, work) where you are expected to be safe.',
+      title: t('safeZones'),
+      subtitle: t('safeZonesSub'),
       child: Column(
         children: [
           Container(
             height: 200,
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: SW.outlineVariant),
             ),
-            child: const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.map_outlined, size: 48, color: Colors.grey),
-                  SizedBox(height: 8),
-                  Text(
-                    'Map integration coming in full version',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
+            clipBehavior: Clip.antiAlias,
+            child: const CustomPaint(
+              painter: _OnboardingMapPainter(),
+              child: SizedBox.expand(),
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'You can set safe zones later in Settings → Safe Zones.',
-            style: TextStyle(color: Colors.grey, fontSize: 13),
+          Text(
+            'Your current neighborhood is shown above. Add zones like home, '
+            'school, or work anytime from Profile → Safe Zones.',
+            style: GoogleFonts.inter(
+                color: SW.onSurfaceVariant, fontSize: 13, height: 1.5),
             textAlign: TextAlign.center,
           ),
           const Spacer(),
-          _NextButton(onTap: onNext, label: 'Get Started'),
+          _NextButton(onTap: onNext, label: t('getStarted')),
         ],
       ),
     );
   }
+}
+
+class _OnboardingMapPainter extends CustomPainter {
+  const _OnboardingMapPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+        Offset.zero & size, Paint()..color = const Color(0xFFEAEFF7));
+
+    final rng = math.Random(11);
+    final blockPaint = Paint()..color = const Color(0xFFDDE4F0);
+    for (int i = 0; i < 30; i++) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(
+            rng.nextDouble() * size.width,
+            rng.nextDouble() * size.height,
+            16 + rng.nextDouble() * 32,
+            12 + rng.nextDouble() * 24,
+          ),
+          const Radius.circular(3),
+        ),
+        blockPaint,
+      );
+    }
+
+    final roadPaint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 4
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(Offset(0, size.height * 0.55),
+        Offset(size.width, size.height * 0.40), roadPaint);
+    canvas.drawLine(Offset(size.width * 0.45, 0),
+        Offset(size.width * 0.55, size.height), roadPaint);
+
+    // Proposed home zone
+    final zone = Offset(size.width * 0.5, size.height * 0.5);
+    canvas.drawCircle(
+        zone, 52, Paint()..color = SW.secondary.withValues(alpha: 0.15));
+    canvas.drawCircle(
+      zone,
+      52,
+      Paint()
+        ..color = SW.secondary
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+    canvas.drawCircle(zone, 8, Paint()..color = SW.secondary);
+
+    // User dot
+    canvas.drawCircle(
+        zone, 16, Paint()..color = SW.primary.withValues(alpha: 0.2));
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 // Shared wrapper for each step

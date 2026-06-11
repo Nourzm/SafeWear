@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../app/i18n.dart';
 import '../../app/theme.dart';
 import '../../services/alert_service.dart';
 import '../../shared/models/user_model.dart';
@@ -77,11 +78,11 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
   String get _modeLabel {
     switch (widget.mode) {
       case EmergencyMode.contacts:
-        return 'Notifying your contacts';
+        return t('notifyingContacts');
       case EmergencyMode.police:
-        return 'Notifying contacts + police';
+        return t('notifyingPolice');
       case EmergencyMode.saveMe:
-        return 'Maximum response — all services';
+        return t('notifyingMax');
     }
   }
 
@@ -104,7 +105,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
       children: [
         const Spacer(),
         Text(
-          'ALERT IN',
+          t('alertIn'),
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.7),
             fontSize: 18,
@@ -161,9 +162,10 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              child: const Text(
-                "I'M SAFE — CANCEL",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              child: Text(
+                t('imSafeCancel'),
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -179,9 +181,9 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
         const Spacer(),
         const Icon(Icons.warning_rounded, color: Colors.white, size: 80),
         const SizedBox(height: 24),
-        const Text(
-          'ALERT SENT',
-          style: TextStyle(
+        Text(
+          t('alertSent'),
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -199,7 +201,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
         ),
         const SizedBox(height: 8),
         Text(
-          'Live location & audio streaming active',
+          t('liveStreaming'),
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.7),
             fontSize: 14,
@@ -220,9 +222,10 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              child: const Text(
-                "I'M SAFE NOW",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              child: Text(
+                t('imSafeNow'),
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
           ),
