@@ -132,12 +132,15 @@ safewear/
 - [x] Wear OS sensor service (HR + fall + grey zone)
 - [x] Apple Watch app (HealthKit + WatchConnectivity)
 - [x] Firebase Cloud Functions (SMS · FCM · heatmap)
-- [ ] Risk map heatmap (Google Maps)
-- [ ] Safe zones geofencing
-- [ ] Medical profile screen
+- [x] Risk map heatmap (Algiers, crowd-sourced reports)
+- [x] Safe zones (add/remove, persisted)
+- [x] Medical profile screen (blood type, conditions, medications)
+- [x] Alert history screen (local records)
+- [x] Fake call feature (discreet exit from unsafe situations)
+- [x] Local persistence — works fully offline, Firebase optional
 - [ ] Voice activation
 - [ ] Subscription tier gating
-- [ ] Alert history screen
+- [ ] Live Google Maps integration (replaces painted maps)
 
 ---
 
